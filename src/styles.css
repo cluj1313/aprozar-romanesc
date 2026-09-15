@@ -90,8 +90,12 @@ html.dark {
   --color-tiktok: #ff5d80;
 }
 
-html[data-text="large"] { font-size: 18px; }
-html[data-text="xl"] { font-size: 20px; }
+html[data-text="large"] {
+  font-size: 18px;
+}
+html[data-text="xl"] {
+  font-size: 20px;
+}
 html[data-font="barlow"] {
   --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
@@ -108,22 +112,41 @@ html[data-font="rotund"] {
   --font-price: "Oswald", ui-sans-serif, system-ui, sans-serif;
 }
 
-.hide-scrollbar { scrollbar-width: none; }
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.tab-bar { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
 @keyframes splash-out {
-  0% { opacity: 1; }
-  55% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+  0% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
+
 .splash-screen {
   animation: splash-out 0.22s ease-in forwards;
   pointer-events: none;
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .splash-screen { animation-duration: 0.12s; }
+  .splash-screen {
+    animation-duration: 0.12s;
+  }
 }
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -137,17 +160,30 @@ html[data-font="rotund"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 20rem;
 }
+
 .tile-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   align-items: start;
 }
-.tile-grid > * { min-width: 0; }
-.ad-frame img { transform: none; animation: none; }
-.ad-slide { transition: transform 0.5s ease-out; }
+.tile-grid > * {
+  min-width: 0;
+}
+
+.ad-frame img {
+  transform: none;
+  animation: none;
+}
+
+.ad-slide {
+  transition: transform 0.5s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

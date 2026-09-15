@@ -24,10 +24,10 @@ export function TabBar() {
             <Link
               key={tab.to}
               to={tab.to}
-              className={
-                "relative flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold " +
-                (active ? "text-primary" : "text-muted")
-              }
+              className={cn(
+                "relative flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold",
+                active ? "text-primary" : "text-muted",
+              )}
             >
               <Icon className="size-5" strokeWidth={active ? 2.2 : 1.8} />
               {tab.label}

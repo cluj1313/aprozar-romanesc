@@ -1,6 +1,11 @@
 # Aprozar Românesc
 
-Codul sursă al aplicației de pe https://aprozar-romanesc-ro.grok.me/
+Codul sursă al aplicației: piețe locale, fermieri, coș, comenzi, reclame, admin.
+
+## Ce trebuie pe calculator
+
+- Node.js 22 sau mai nou
+- npm
 
 ## Pornire
 
@@ -9,18 +14,27 @@ npm install
 npm run dev
 ```
 
-Apoi deschizi http://localhost:8080
+Apoi deschizi în browser adresa pe care o afișează terminalul (de obicei `http://localhost:8080`).
 
-Pe Windows, dacă `npm run dev` dă `spawn vite ENOENT`:
+Pentru versiunea de producție:
 
-```powershell
-$env:CHOKIDAR_USEPOLLING = "1"
-.\\node_modules\\.bin\\vite.cmd dev --host 127.0.0.1 --port 8080
+```bash
+npm run build
+npm run preview
 ```
+
+## Unde e ce
 
 | Folder | Conținut |
 |---|---|
-| `src/routes` | paginile |
-| `src/components` | ecranele |
-| `src/lib` | reclame, catalog, admin |
-| `migrations` | tabelele |
+| `src/routes` | paginile (Acasă, produse, coș, admin, cont…) |
+| `src/components` | ecranele și butoanele |
+| `src/lib` | prețuri, reclame, catalog, admin, baza de date |
+| `public/images` | pozele din tarabă |
+| `migrations` | tabelele bazei de date |
+
+Baza de date pornește local (PGLite). Dacă pui `DATABASE_URL` către Postgres, folosește Postgres.
+
+Adminul e pagina `/admin`. Intrarea e cu numele, emailul și telefonul pe care le-ai setat în aplicație.
+
+Aplicația a fost construită în Grok Build. Poți continua pe calculatorul tău sau pe GitHub.

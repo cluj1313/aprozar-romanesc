@@ -1,5 +1,6 @@
 import { emailsMatch, phonesMatch } from "@/lib/admin-identity";
 
+/** Server-only. Do not import from client components. */
 export const ADMIN_IDENTITY = {
   name: "Cioban Iosif Gabriel",
   email: "cluj1313@gmail.com",

@@ -26,7 +26,9 @@ export function formatLeiPlain(bani: number): string {
 
 export function formatQty(qty: number, unit: string): string {
   const n = Number(qty);
-  const shown = Number.isInteger(n) ? String(n) : n.toLocaleString("ro-RO", { maximumFractionDigits: 2 });
+  const shown = Number.isInteger(n)
+    ? String(n)
+    : n.toLocaleString("ro-RO", { maximumFractionDigits: 2 });
   return `${shown} ${unit}`;
 }
 
@@ -37,13 +39,19 @@ export function parseLeiToBani(raw: string): number {
   return Math.round(n * 100);
 }
 
+/** Price per unit after quantity discount, if any. */
 export function unitPriceBani(opts: {
   qty: number;
   priceBani: number;
   bulkQty: number | null;
   bulkPriceBani: number | null;
 }): number {
-  if (opts.bulkQty && opts.bulkPriceBani && opts.bulkQty > 0 && opts.qty + 1e-9 >= opts.bulkQty) {
+  if (
+    opts.bulkQty &&
+    opts.bulkPriceBani &&
+    opts.bulkQty > 0 &&
+    opts.qty + 1e-9 >= opts.bulkQty
+  ) {
     return opts.bulkPriceBani;
   }
   return opts.priceBani;

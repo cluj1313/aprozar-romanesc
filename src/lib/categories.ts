@@ -14,7 +14,9 @@ export const DEFAULT_CATEGORIES = [
   { id: "altele", label: "Altele" },
 ] as const;
 
+/** @deprecated use DEFAULT_CATEGORIES or catalog.categories */
 export const CATEGORIES = DEFAULT_CATEGORIES;
+
 export type CategoryId = (typeof DEFAULT_CATEGORIES)[number]["id"];
 
 export function categoryLabel(id: string, list?: { id: string; label: string }[]) {
@@ -22,4 +24,5 @@ export function categoryLabel(id: string, list?: { id: string; label: string }[]
 }
 
 export const PRODUCER_PIN = "taraba";
+/** @deprecated producers use PRODUCER_PIN; admin logs in with email + phone */
 export const ADMIN_PIN = PRODUCER_PIN;

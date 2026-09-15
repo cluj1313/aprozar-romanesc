@@ -31,7 +31,12 @@ export function SuggestMore({
           {list.map((p) => {
             const farm = data?.producers.find((x) => x.id === p.producerId);
             return (
-              <Link key={p.id} to="/produse/$slug" params={{ slug: p.slug }} className="w-32 shrink-0">
+              <Link
+                key={p.id}
+                to="/produse/$slug"
+                params={{ slug: p.slug }}
+                className="w-32 shrink-0"
+              >
                 <img src={p.image} alt="" className="aspect-square w-full rounded-lg object-cover" />
                 <p className="mt-1 line-clamp-2 text-xs font-semibold leading-snug">{p.name}</p>
                 <p className="mt-0.5 truncate text-xs font-medium">{farm?.name}</p>
