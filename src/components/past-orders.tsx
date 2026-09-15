@@ -1,32 +1,65 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
 import { QtyStepper } from "@/components/qty-stepper";
+import { OrderTrack } from "@/components/order-track";
 import { formatLei, formatQty } from "@/lib/money";
-import { farmLabel, stageOf } from "@/lib/order-status";
+import { farmLabel, isWaitingOrder, stageOf } from "@/lib/order-status";
 import { useShop } from "@/lib/store";
 import type { Product, SavedOrder, SavedOrderItem } from "@/lib/types";
 import { useCatalog } from "@/lib/use-catalog";
-import { cn, formatWhen } from "@/lib/utils";
+import { formatWhen } from "@/lib/utils";
 
 export function PastOrders({ orders }: { orders: SavedOrder[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const newestFirst = useShop((s) => s.prefs.listsNewestFirst !== false);
+  const setPrefs = useShop((s) => s.setPrefs);
 
   const list = useMemo(() => {
-    return [...orders].sort((a, b) => {
+    const sorted = [...orders].sort((a, b) => {
       const tb = new Date(b.createdAt).getTime();
       const ta = new Date(a.createdAt).getTime();
       if (Number.isFinite(tb) && Number.isFinite(ta) && tb !== ta) return tb - ta;
       return 0;
     });
-  }, [orders]);
+    return newestFirst ? sorted : sorted.reverse();
+  }, [orders, newestFirst]);
 
   if (!list.length) return null;
 
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-semibold">Comenzi efectuate</h2>
-      <p className="mt-1 text-sm text-muted">Deschide, pune în coș, apoi comandă din nou.</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Listele tale</h2>
+          <p className="mt-1 text-sm text-muted">
+            Data, prețul, Deschide — vezi ce-ai cerut, pune iar în coș, scoate sau adaugă.
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-1.5">
+        <button
+          type="button"
+          onClick={() => setPrefs({ listsNewestFirst: true })}
+          className={
+            newestFirst
+              ? "h-10 rounded-full bg-primary text-xs font-semibold text-primary-fg"
+              : "h-10 rounded-full border border-border bg-elevated text-xs font-semibold"
+          }
+        >
+          Liste noi deasupra
+        </button>
+        <button
+          type="button"
+          onClick={() => setPrefs({ listsNewestFirst: false })}
+          className={
+            !newestFirst
+              ? "h-10 rounded-full bg-primary text-xs font-semibold text-primary-fg"
+              : "h-10 rounded-full border border-border bg-elevated text-xs font-semibold"
+          }
+        >
+          Liste noi jos
+        </button>
+      </div>
       <ul className="mt-3 space-y-2">
         {list.map((o) => {
           const open = openId === o.id;
@@ -35,25 +68,20 @@ export function PastOrders({ orders }: { orders: SavedOrder[] }) {
             <li key={o.id} className="overflow-hidden rounded-2xl border border-border bg-elevated">
               <button
                 type="button"
-                className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-2 text-left"
+                className="flex min-h-14 w-full items-center gap-3 px-3 py-2 text-left"
                 onClick={() => setOpenId(open ? null : o.id)}
                 aria-expanded={open}
               >
-                <span className="min-w-0">
-                  <span className="flex items-center gap-1.5">
-                    <OrderThumbs items={o.items} />
-                    <span className="min-w-0">
-                      <span className="block font-medium tabular-nums">{formatWhen(o.createdAt)}</span>
-                      <span className="block truncate text-xs text-muted">
-                        {farmLabel(o)} · {stage.title}
-                      </span>
-                    </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium tabular-nums">{formatWhen(o.createdAt)}</span>
+                  <span className="block truncate text-xs text-muted">
+                    {farmLabel(o)} · {stage.title}
                   </span>
                 </span>
-                <span className="flex items-center gap-2 font-semibold text-primary">
-                  <span className="tabular-nums">{formatLei(o.totalBani)}</span>
-                  <ChevronDown className={cn("size-4 text-muted transition-transform", open && "rotate-180")} />
+                <span className="shrink-0 font-price font-semibold tabular-nums text-primary">
+                  {formatLei(o.totalBani)}
                 </span>
+                <span className="shrink-0 text-sm font-semibold text-primary">{open ? "Închide" : "Deschide"}</span>
               </button>
               {open ? <OrderReceipt order={o} /> : null}
             </li>
@@ -72,6 +100,7 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
   const products = catalog?.products ?? [];
   const liveById = new Map(products.map((p) => [p.id, p]));
   const canReorder = order.items.some((i) => liveById.has(i.productId));
+  const waiting = isWaitingOrder(order);
 
   const putAll = () => {
     setMany(
@@ -90,13 +119,21 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
     setFlash("Am pus tot în coș");
   };
 
-  const stage = stageOf(order);
+  const farms = groupReceipt(order.items);
 
   return (
     <div className="border-t border-border">
-      <p className="px-4 pt-3 text-sm font-semibold text-primary">{stage.title}</p>
-      <p className="px-4 text-xs text-muted">{stage.hint}</p>
-      {groupReceipt(order.items).map((farm) => (
+      {waiting ? (
+        <div className="px-3 pt-3">
+          <OrderTrack order={order} pillsOnly />
+        </div>
+      ) : (
+        <>
+          <p className="px-4 pt-3 text-sm font-semibold text-primary">{stageOf(order).title}</p>
+          <p className="px-4 text-xs text-muted">{stageOf(order).hint}</p>
+        </>
+      )}
+      {farms.map((farm) => (
         <div key={farm.id}>
           <div className="flex items-baseline justify-between gap-3 px-4 pt-3">
             <p className="min-w-0 truncate text-sm font-semibold">{farm.name}</p>
@@ -120,9 +157,7 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
                       {formatQty(item.qty, item.unit)}
                       {item.fulfillment === "livrare" ? " · livrare" : " · ridicare"}
                     </p>
-                    {!onTaraba ? (
-                      <p className="mt-1 text-xs text-warn">Nu mai e pe tarabă</p>
-                    ) : null}
+                    {!onTaraba ? <p className="mt-1 text-xs text-warn">Nu mai e pe tarabă</p> : null}
                   </div>
                   <div
                     className="flex shrink-0 flex-col items-end gap-2"
@@ -154,6 +189,15 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
               );
             })}
           </ul>
+          <div className="px-4 pt-2">
+            <Link
+              to="/producatori/$id"
+              params={{ id: farm.id }}
+              className="text-sm font-semibold text-primary"
+            >
+              Mai adaugă de la {farm.name}
+            </Link>
+          </div>
         </div>
       ))}
       {order.deliveryBani > 0 ? (
@@ -191,23 +235,6 @@ function groupReceipt(items: SavedOrderItem[]) {
     items: list,
     total: list.reduce((s, i) => s + i.lineBani, 0),
   }));
-}
-
-function OrderThumbs({ items }: { items: SavedOrderItem[] }) {
-  const photos = items.map((i) => i.image).filter(Boolean).slice(0, 3);
-  if (!photos.length) return null;
-  return (
-    <span className="flex shrink-0 -space-x-1.5">
-      {photos.map((src, i) => (
-        <img
-          key={`${src}-${i}`}
-          src={src}
-          alt=""
-          className="size-8 rounded-md object-cover outline outline-1 outline-bg"
-        />
-      ))}
-    </span>
-  );
 }
 
 function ReceiptPhoto({ item, live }: { item: SavedOrderItem; live?: Product }) {

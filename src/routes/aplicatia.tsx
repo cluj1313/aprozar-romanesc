@@ -61,29 +61,24 @@ function AplicatiaPage() {
             ))}
           </div>
 
-          <section className="mt-8">
+          <section id="alte-aplicatii" className="mt-8 scroll-mt-16">
             <h2 className="font-display text-lg font-bold tracking-wide uppercase">
               Alte aplicații de-ale mele
             </h2>
-            <div className="mt-3">
-              <OtherApps
-                apps={page.apps}
-                empty={
-                  session.role === "admin" ? (
-                    <p className="text-sm font-light text-muted">
-                      Nicio altă aplicație încă. Pune un banner și un link mai jos.
-                    </p>
-                  ) : (
+            {session.role === "admin" ? (
+              <AppsEditor apps={page.apps} onDone={refreshApps} embedded />
+            ) : (
+              <div className="mt-3">
+                <OtherApps
+                  apps={page.apps}
+                  empty={
                     <p className="text-sm font-light text-muted">
                       Gabriel își pune aici celelalte aplicații.
                     </p>
-                  )
-                }
-              />
-            </div>
-            {session.role === "admin" ? (
-              <AppsEditor apps={page.apps} onDone={refreshApps} embedded />
-            ) : null}
+                  }
+                />
+              </div>
+            )}
           </section>
         </div>
       </div>

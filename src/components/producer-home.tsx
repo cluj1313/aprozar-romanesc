@@ -1,18 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Megaphone, Plus, Sprout, Star, Warehouse } from "lucide-react";
 import { AdComposer } from "@/components/ad-composer";
 import { MyAds } from "@/components/my-ads";
 import { MyNotices } from "@/components/my-notices";
-import { listOrders } from "@/lib/catalog-fns";
+import { deleteProduct, listOrders, patchProduct } from "@/lib/catalog-fns";
 import { formatLei } from "@/lib/money";
 import { useShop } from "@/lib/store";
-import { useCatalog } from "@/lib/use-catalog";
+import { catalogQueryKey, useCatalog } from "@/lib/use-catalog";
 
 export function ProducerHome() {
   const session = useShop((s) => s.session);
+  const setFlash = useShop((s) => s.setFlash);
   const { data } = useCatalog();
+  const qc = useQueryClient();
   const ordersQ = useQuery({ queryKey: ["orders"], queryFn: () => listOrders() });
   const producerId = session.role === "producer" ? session.producerId : null;
   const products = (data?.products ?? []).filter((p) => !producerId || p.producerId === producerId);
@@ -24,6 +26,17 @@ export function ProducerHome() {
   const ads = data?.ads ?? [];
   const mine = ads.filter((a) => producerId && a.producerId === producerId);
   const [compose, setCompose] = useState(false);
+  const hide = useMutation({
+    mutationFn: (p: { id: string; visible: boolean }) => patchProduct({ data: p }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: catalogQueryKey }),
+  });
+  const del = useMutation({
+    mutationFn: (id: string) => deleteProduct({ data: { id } }),
+    onSuccess: () => {
+      setFlash("Produsul a fost șters");
+      void qc.invalidateQueries({ queryKey: catalogQueryKey });
+    },
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
@@ -132,17 +145,41 @@ export function ProducerHome() {
           </Link>
         </div>
         <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-elevated">
-          {products.slice(0, 8).map((p) => (
-            <li key={p.id}>
-              <Link
-                to="/admin/produs/$id"
-                params={{ id: p.id }}
-                className="flex items-center gap-3 px-3 py-3"
-              >
+          {products.map((p) => (
+            <li key={p.id} className="px-3 py-3">
+              <div className="flex items-center gap-3">
                 <img src={p.image} alt="" className="size-12 rounded-lg object-cover" />
-                <p className="min-w-0 flex-1 font-semibold">{p.name}</p>
+                <p className="min-w-0 flex-1 font-semibold">
+                  {p.name}
+                  {p.visible ? null : (
+                    <span className="ms-2 text-xs font-medium text-muted">ascuns</span>
+                  )}
+                </p>
                 <p className="font-price text-sm font-semibold">{formatLei(p.priceBani)}</p>
-              </Link>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-3">
+                <Link
+                  to="/admin/produs/$id"
+                  params={{ id: p.id }}
+                  className="text-sm font-semibold text-primary"
+                >
+                  Editează
+                </Link>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-muted"
+                  onClick={() => hide.mutate({ id: p.id, visible: !p.visible })}
+                >
+                  {p.visible ? "Ascunde" : "Arată"}
+                </button>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-danger"
+                  onClick={() => del.mutate(p.id)}
+                >
+                  Șterge
+                </button>
+              </div>
             </li>
           ))}
           {products.length === 0 ? (

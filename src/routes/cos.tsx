@@ -1,13 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { CartLine } from "@/components/cart-line";
-import { WaitingOrders } from "@/components/order-track";
 import { PastOrders } from "@/components/past-orders";
 import { SuggestMore } from "@/components/suggest-more";
 import { Button } from "@/components/ui/button";
 import { cartTotals, groupCart } from "@/lib/cart-math";
 import { formatLei } from "@/lib/money";
-import { splitMyOrders } from "@/lib/order-status";
 import { useShop } from "@/lib/store";
 import { useCatalog } from "@/lib/use-catalog";
 
@@ -18,8 +16,7 @@ function CosPage() {
   const items = useShop((s) => s.items);
   const myOrders = useShop((s) => s.myOrders);
   const myOrderIds = useShop((s) => s.myOrderIds);
-  const { waiting, past } = splitMyOrders(myOrders);
-  const hasHistory = past.length > 0 || waiting.length > 0 || myOrderIds.length > 0;
+  const hasHistory = myOrders.length > 0 || myOrderIds.length > 0;
 
   if (!data) {
     return (
@@ -93,17 +90,6 @@ function CosPage() {
           </>
         ) : null}
 
-        {shopping ? (
-          <WaitingOrders orders={waiting} heading="Comandă în așteptare" />
-        ) : waiting.length > 1 ? (
-          <>
-            <WaitingOrders orders={waiting.slice(0, 1)} />
-            <WaitingOrders orders={waiting.slice(1)} heading="Comandă în așteptare" />
-          </>
-        ) : (
-          <WaitingOrders orders={waiting} />
-        )}
-
         {!shopping && !hasHistory ? (
           <>
             <p className="mt-3 text-sm text-muted">
@@ -115,7 +101,7 @@ function CosPage() {
           </>
         ) : null}
 
-        <PastOrders orders={past} />
+        <PastOrders orders={myOrders} />
         <SuggestMore
           excludeIds={items.map((i) => i.productId)}
           position="checkout_more"

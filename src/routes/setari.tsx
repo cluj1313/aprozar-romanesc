@@ -165,9 +165,11 @@ function SetariPage() {
           </button>
         </div>
 
-        <h2 className="mt-8 text-sm font-semibold">Fără reclame</h2>
+        <h2 id="fara-reclame" className="mt-8 scroll-mt-16 text-sm font-semibold">
+          Fără reclame
+        </h2>
         <p className="mt-1 text-xs text-muted">
-          Le oprești pe telefonul ăsta. {formatLei(AD_BLOCK_YEAR_BANI)} un an,{" "}
+          Le oprești pe telefonul ăsta — și din meniul de sus. {formatLei(AD_BLOCK_YEAR_BANI)} un an,{" "}
           {formatLei(AD_BLOCK_FOREVER_BANI)} pentru totdeauna.
         </p>
         {blockNote ? (

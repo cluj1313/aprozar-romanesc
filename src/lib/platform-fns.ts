@@ -100,6 +100,7 @@ function mapAppLink(r: Record<string, unknown>): AppLink {
     image: String(r.image ?? ""),
     url: String(r.url ?? ""),
     sortOrder: num(r.sort_order),
+    hidden: bool(r.hidden),
   };
 }
 
@@ -393,6 +394,9 @@ async function ensureAppPage(sql: Awaited<ReturnType<typeof getSql>>) {
       sort_order integer not null default 0
     )
   `);
+  await sql.query(
+    "alter table app_apps add column if not exists hidden boolean not null default false",
+  );
   await sql.query(`
     create table if not exists app_visitors (
       visitor_key text primary key,
@@ -458,34 +462,6 @@ async function seedAppPage(sql: Awaited<ReturnType<typeof getSql>>) {
       `;
     }
   }
-  const appCount = await sql<{ c: number }>`select count(*)::int as c from app_apps`;
-  if ((appCount[0]?.c ?? 0) === 0) {
-    for (const a of SEED_APP_APPS) {
-      await sql`
-        insert into app_apps (id, title, body, image, url, sort_order)
-        values (${a.id}, ${a.title}, ${a.body}, ${a.image}, ${a.url}, ${a.sortOrder})
-        on conflict (id) do nothing
-      `;
-    }
-  }
-  for (const a of SEED_APP_APPS) {
-    await sql`
-      insert into app_apps (id, title, body, image, url, sort_order)
-      values (${a.id}, ${a.title}, ${a.body}, ${a.image}, ${a.url}, ${a.sortOrder})
-      on conflict (id) do nothing
-    `;
-    await sql`
-      update app_apps
-      set
-        title = ${a.title},
-        body = ${a.body},
-        image = ${a.image},
-        url = ${a.url},
-        sort_order = ${a.sortOrder}
-      where id = ${a.id}
-        and image not like ${"data:%"}
-    `;
-  }
   await sql`delete from app_apps where id = ${"app-livada"}`;
   const p = SEED_APP_PROFILE;
   if (p.socialIntro || p.facebook || p.instagram || p.youtube || p.tiktok || p.website) {
@@ -523,6 +499,9 @@ async function loadLiveStats(sql: Awaited<ReturnType<typeof getSql>>): Promise<A
 
 async function loadAppPageData(sql: Awaited<ReturnType<typeof getSql>>) {
   await seedAppPage(sql);
+  await sql.query(
+    "alter table app_apps add column if not exists hidden boolean not null default false",
+  );
   const profileRows = (await sql`select * from app_profile where id = ${"main"}`) as Record<
     string,
     unknown
@@ -595,11 +574,8 @@ async function ensurePlatformSeed() {
         body = excluded.body,
         position = excluded.position,
         image = excluded.image,
-        status = ${"live"},
-        active = ${true},
         duration_hours = excluded.duration_hours,
         display_seconds = ${10},
-        live_at = ${new Date().toISOString()},
         link_url = excluded.link_url
     `;
   }
@@ -607,7 +583,7 @@ async function ensurePlatformSeed() {
     "update ads set live_at = created_at where live_at is null and status = 'live'",
   );
   await sql.query(
-    "update ads set duration_hours = 8760, status = 'live', active = true where id in ('ad-ferma','ad-rosii') and status <> 'rejected'",
+    "update ads set duration_hours = 8760 where id in ('ad-ferma','ad-rosii') and duration_hours < 8760",
   );
   await sql`
     update ads
@@ -1570,6 +1546,9 @@ export const saveAppLink = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
+    if (data.image.startsWith("data:") && data.image.length > 450_000) {
+      return { ok: false as const, error: "Poza e prea mare. Alege o imagine mai mică." };
+    }
     const sql = await getSql();
     await ensureAppPage(sql);
     const id = data.id && data.id !== "nou" ? data.id : newId("app");
@@ -1586,7 +1565,16 @@ export const saveAppLink = createServerFn({ method: "POST" })
         image = excluded.image,
         url = excluded.url
     `;
-    return { ok: true, id };
+    return { ok: true as const, id };
+  });
+
+export const hideAppLink = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string(), hidden: z.boolean() }))
+  .handler(async ({ data }) => {
+    const sql = await getSql();
+    await ensureAppPage(sql);
+    await sql`update app_apps set hidden = ${data.hidden} where id = ${data.id}`;
+    return { ok: true };
   });
 
 export const deleteAppLink = createServerFn({ method: "POST" })

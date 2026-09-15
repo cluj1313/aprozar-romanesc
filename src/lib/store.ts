@@ -11,6 +11,7 @@ type Prefs = {
   text: "normal" | "large" | "xl";
   cards: "tall" | "flat";
   font: FontId;
+  listsNewestFirst: boolean;
 };
 
 export type BrowseFilters = {
@@ -162,7 +163,7 @@ export const useShop = create<ShopState>()(
       favorites: [],
       favoriteProducers: [],
       session: { role: "guest" },
-      prefs: { theme: "light", text: "normal", cards: "tall", font: "oswald" },
+      prefs: { theme: "light", text: "normal", cards: "tall", font: "oswald", listsNewestFirst: true },
       filters: { km: null, category: null },
       myOrderIds: [],
       myOrders: [],
@@ -268,7 +269,9 @@ export const useShop = create<ShopState>()(
       setCartOpen: (cartOpen) => set({ cartOpen }),
       rememberOrder: (order) => {
         const next = { ...order, status: order.status ?? ("noua" as const) };
-        const myOrders = [next, ...get().myOrders.filter((o) => o.id !== order.id)].slice(0, 20);
+        const rest = get().myOrders.filter((o) => o.id !== order.id);
+        const top = get().prefs.listsNewestFirst !== false;
+        const myOrders = (top ? [next, ...rest] : [...rest, next]).slice(0, 20);
         set({ myOrders, myOrderIds: idsFrom(myOrders) });
       },
       hydrateOrders: (orders) => {
@@ -311,7 +314,11 @@ export const useShop = create<ShopState>()(
         const next = cleanLogins([login, ...get().savedLogins]);
         set({ lastLogin: null, savedLogins: next, loginHints: hintsFrom(next) });
       },
-      rememberContact: (contact) => set({ contact }),
+      rememberContact: (contact) => {
+        const login = { name: contact.name, phone: contact.phone, email: "" };
+        const next = cleanLogins([login, ...get().savedLogins]);
+        set({ contact, savedLogins: next, loginHints: hintsFrom(next) });
+      },
       setFlash: (flash) => set({ flash }),
       setShowShare: (showShare) => set({ showShare }),
       setShareQueue: (shareQueue) => set({ shareQueue, showShare: shareQueue.length > 0 }),
@@ -400,6 +407,7 @@ export const useShop = create<ShopState>()(
               p.prefs?.font === "barlow" || p.prefs?.font === "plex" || p.prefs?.font === "rotund"
                 ? p.prefs.font
                 : "oswald",
+            listsNewestFirst: p.prefs?.listsNewestFirst !== false,
           },
           filters: {
             km: typeof p.filters?.km === "number" ? p.filters.km : null,

@@ -31,8 +31,7 @@ function Home() {
     .sort((a, b) => a.km - b.km);
   const nearbyIds = new Set(producers.map((p) => p.id));
   const stories = catalog.stories.filter((s) => nearbyIds.has(s.producerId) || km == null);
-  const addProductTo =
-    session.role === "producer" ? "/admin/produse" : session.role === "admin" ? "/admin" : "/cont";
+  const addAsProducer = session.role === "producer";
 
   return (
     <AppShell>
@@ -45,13 +44,24 @@ function Home() {
             <p className="font-semibold">Ești producător?</p>
             <p className="text-xs text-muted">Vinde direct către clienți.</p>
           </div>
-          <Link
-            to={addProductTo}
-            className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-primary px-3 text-sm font-semibold text-primary-fg"
-          >
-            <Plus className="size-4" />
-            Adaugă produs
-          </Link>
+          {addAsProducer ? (
+            <Link
+              to="/admin/produse"
+              className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-primary px-3 text-sm font-semibold text-primary-fg"
+            >
+              <Plus className="size-4" />
+              Adaugă produs
+            </Link>
+          ) : (
+            <Link
+              to="/cont"
+              search={{ tab: "producator" }}
+              className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-primary px-3 text-sm font-semibold text-primary-fg"
+            >
+              <Plus className="size-4" />
+              Adaugă produs
+            </Link>
+          )}
         </section>
 
         <AdSlot position="home_top" className="mt-4 px-0 pb-0" />

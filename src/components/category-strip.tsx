@@ -67,10 +67,11 @@ export function CategoryStrip({
   }
 
   function onToate() {
-    setOpen((v) => !v);
-    if (search.c) {
+    if (shop) {
       void navigate({ to: "/produse", search: { q: q || undefined, c: undefined } });
+      return;
     }
+    setOpen((v) => !v);
   }
 
   function onChip(c: { id: string; label: string }) {
@@ -217,6 +218,7 @@ export function CategoryStrip({
       ref={stripRef}
       className="hide-scrollbar mt-1.5 -mx-4 cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing"
       onPointerDown={(e) => {
+        if ((e.target as HTMLElement).closest("button, a, input, label, form")) return;
         const el = stripRef.current;
         if (!el) return;
         drag.current = { on: true, x: e.clientX, sl: el.scrollLeft, moved: false };

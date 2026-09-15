@@ -81,6 +81,7 @@ export const SEED_APP_APPS = [
     body: "Toți meșterii din jurul tău",
     image: "/images/banner-servicii-apps.jpg",
     url: "https://cluj1313.github.io/",
+    hidden: false,
   },
   {
     id: "app-trading",
@@ -89,6 +90,7 @@ export const SEED_APP_APPS = [
     body: "Planul, jurnalul și disciplina — forex și acțiuni.",
     image: "/images/banner-trading-apps.jpg",
     url: "https://cluj1313.github.io/ciubi-trading-companion3/",
+    hidden: false,
   },
 ];
 

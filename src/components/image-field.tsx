@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 export function ImageField({
   value,
   onChange,
+  onError,
   label,
   wide,
 }: {
   value: string;
   onChange: (v: string) => void;
+  onError?: (msg: string) => void;
   label?: string;
   wide?: boolean;
 }) {
@@ -21,22 +23,22 @@ export function ImageField({
           src={value}
           alt=""
           className={cn(
-            "mt-1 w-full rounded-xl object-cover object-center",
-            wide ? "aspect-video" : "h-28",
+            "mt-1 w-full rounded-xl bg-sunken object-cover object-center",
+            wide ? "max-h-36 aspect-video" : "h-28",
           )}
         />
       ) : null}
       <input
         className={`${adminField} mt-1`}
         placeholder={wide ? "Linkul bannerului (opțional)" : "Linkul pozei (opțional)"}
-        value={value.startsWith("data:") ? "" : value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value.startsWith("data:") ? "Poză aleasă de pe telefon" : value}
+        onChange={(e) => onChange(e.target.value === "Poză aleasă de pe telefon" ? value : e.target.value)}
       />
       <div className="mt-2 flex flex-wrap gap-2">
-        <PickButton label="Din galerie" onFile={onChange}>
+        <PickButton label="Din galerie" onFile={onChange} onError={onError}>
           <Images className="size-4" />
         </PickButton>
-        <PickButton label="Fă o poză" capture onFile={onChange}>
+        <PickButton label="Fă o poză" capture onFile={onChange} onError={onError}>
           <Camera className="size-4" />
         </PickButton>
       </div>
@@ -48,11 +50,13 @@ function PickButton({
   label,
   capture,
   onFile,
+  onError,
   children,
 }: {
   label: string;
   capture?: boolean;
   onFile: (v: string) => void;
+  onError?: (msg: string) => void;
   children: React.ReactNode;
 }) {
   return (
@@ -68,7 +72,9 @@ function PickButton({
           const file = e.target.files?.[0];
           e.target.value = "";
           if (!file) return;
-          void fileToDataUrl(file).then(onFile);
+          void fileToDataUrl(file)
+            .then(onFile)
+            .catch(() => onError?.("Nu am putut citi poza. Încearcă alt fișier sau un link."));
         }}
       />
     </label>
@@ -76,26 +82,52 @@ function PickButton({
 }
 
 async function fileToDataUrl(file: File): Promise<string> {
-  const raw = await readFile(file);
-  const img = await loadImage(raw);
-  const max = 1280;
-  const scale = Math.min(1, max / Math.max(img.width, img.height));
-  const w = Math.max(1, Math.round(img.width * scale));
-  const h = Math.max(1, Math.round(img.height * scale));
+  const maxEdge = 960;
+  let bitmap: ImageBitmap | null = null;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    const raw = await readFile(file);
+    const img = await loadImage(raw);
+    return drawJpeg(img, img.width, img.height, maxEdge);
+  }
+  try {
+    return drawJpeg(bitmap, bitmap.width, bitmap.height, maxEdge);
+  } finally {
+    bitmap.close();
+  }
+}
+
+function drawJpeg(
+  source: CanvasImageSource,
+  sw: number,
+  sh: number,
+  maxEdge: number,
+): string {
+  const scale = Math.min(1, maxEdge / Math.max(sw, sh));
+  const w = Math.max(1, Math.round(sw * scale));
+  const h = Math.max(1, Math.round(sh * scale));
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return raw;
-  ctx.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", 0.82);
+  if (!ctx) throw new Error("Poză invalidă");
+  ctx.drawImage(source, 0, 0, w, h);
+  let quality = 0.72;
+  let out = canvas.toDataURL("image/jpeg", quality);
+  while (out.length > 280_000 && quality > 0.4) {
+    quality -= 0.12;
+    out = canvas.toDataURL("image/jpeg", quality);
+  }
+  if (out.length > 420_000) throw new Error("Poză prea mare");
+  return out;
 }
 
 function readFile(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(reader.error ?? new Error("Citire eșuată"));
     reader.readAsDataURL(file);
   });
 }

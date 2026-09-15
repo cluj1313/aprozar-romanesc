@@ -314,6 +314,14 @@ export const patchProduct = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export const deleteProduct = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string() }))
+  .handler(async ({ data }) => {
+    const sql = await getSql();
+    await sql`delete from products where id = ${data.id}`;
+    return { ok: true as const };
+  });
+
 const producerInput = z.object({
   id: z.string(),
   name: z.string().min(1),

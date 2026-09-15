@@ -88,7 +88,10 @@ export function HomeAds({ ads }: { ads: Ad[] }) {
   });
   const tog = useMutation({
     mutationFn: (p: { id: string; active: boolean }) => toggleAd({ data: p }),
-    onSuccess: invalidate,
+    onSuccess: (_res, p) => {
+      setFlash(p.active ? "Reclama e live jos pe Acasă" : "Reclama e oprită — nu se mai vede pe Acasă");
+      invalidate();
+    },
   });
   const del = useMutation({
     mutationFn: (id: string) => deleteAd({ data: { id } }),
@@ -172,7 +175,7 @@ export function HomeAds({ ads }: { ads: Ad[] }) {
           const lead = isLeadAd(ad);
           return (
             <li key={ad.id} className="rounded-xl border border-border bg-bg p-2">
-              <div className="h-20 overflow-hidden rounded-lg">
+              <div className={cn("h-20 overflow-hidden rounded-lg", ad.active ? "" : "opacity-45")}>
                 <AdBanner ad={ad} compact />
               </div>
               <p className="mt-2 text-xs font-semibold text-muted">
@@ -180,6 +183,7 @@ export function HomeAds({ ads }: { ads: Ad[] }) {
                   ? `Prima la pornire · ${LEAD_AD_SECONDS} s`
                   : `${ad.displaySeconds} s pe ecran`}
                 {ad.linkUrl ? ` · ${ad.linkUrl.replace(/^https?:\/\//, "")}` : ""}
+                {ad.active ? "" : " · Oprită"}
               </p>
               {lead ? null : (
                 <div className="mt-1 flex flex-wrap gap-1">

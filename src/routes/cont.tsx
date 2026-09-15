@@ -125,7 +125,7 @@ function ClientPane() {
               return;
             }
             rememberContact({ name: name.trim(), phone: phone.trim() });
-            setFlash("Ești logat ca client.");
+            setFlash("Ești logat ca client. Numele și telefonul rămân pe telefonul ăsta.");
             setErr("");
           }}
         >
@@ -333,7 +333,7 @@ function ProducerPane() {
           const nextName = farmName.trim();
           const go = () => {
             setSession({ role: "producer", producerId });
-            void navigate({ to: "/admin" });
+            void navigate({ to: "/admin/produse" });
           };
           if (nextName.length >= 2 && nextName !== (selected?.name ?? "")) {
             rename.mutate(

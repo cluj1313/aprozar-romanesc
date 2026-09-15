@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProducerOnly } from "@/components/producer-only";
-import { patchProduct } from "@/lib/catalog-fns";
+import { deleteProduct, patchProduct } from "@/lib/catalog-fns";
 import { categoryLabel } from "@/lib/categories";
 import { formatLei, parseLeiToBani } from "@/lib/money";
 import { useShop } from "@/lib/store";
@@ -21,6 +21,7 @@ function AdminProductsPage() {
 
 function AdminProducts() {
   const session = useShop((s) => s.session);
+  const setFlash = useShop((s) => s.setFlash);
   const { data } = useCatalog();
   const qc = useQueryClient();
   const producerId = session.role === "producer" ? session.producerId : null;
@@ -30,13 +31,22 @@ function AdminProducts() {
       patchProduct({ data: payload }),
     onSuccess: () => qc.invalidateQueries({ queryKey: catalogQueryKey }),
   });
+  const del = useMutation({
+    mutationFn: (id: string) => deleteProduct({ data: { id } }),
+    onSuccess: () => {
+      setFlash("Produsul a fost șters");
+      void qc.invalidateQueries({ queryKey: catalogQueryKey });
+    },
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold">Produse</h1>
-          <p className="text-sm text-muted">Atinge prețul sau stocul, apasă Enter. Se vede imediat în magazin.</p>
+          <h1 className="font-display text-2xl font-semibold">Marfa mea</h1>
+          <p className="text-sm text-muted">
+            Editează, ascunde ce nu e gata, sau șterge ce nu mai ai.
+          </p>
         </div>
         <Button asChild>
           <Link to="/admin/produs/$id" params={{ id: "nou" }}>
@@ -44,7 +54,48 @@ function AdminProducts() {
           </Link>
         </Button>
       </div>
-      <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-elevated">
+
+      <ul className="mt-4 space-y-2 md:hidden">
+        {products.map((p) => (
+          <li key={p.id} className="rounded-2xl border border-border bg-elevated p-3">
+            <div className="flex items-center gap-3">
+              <img src={p.image} alt="" className="size-14 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">{p.name}</p>
+                <p className="text-xs text-muted">
+                  {formatLei(p.priceBani)} · stoc {p.stock}
+                  {p.visible ? "" : " · ascuns"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              <Link
+                to="/admin/produs/$id"
+                params={{ id: p.id }}
+                className="text-sm font-semibold text-primary"
+              >
+                Editează
+              </Link>
+              <button
+                type="button"
+                className="text-sm font-semibold text-muted"
+                onClick={() => mutation.mutate({ id: p.id, visible: !p.visible })}
+              >
+                {p.visible ? "Ascunde" : "Arată"}
+              </button>
+              <button
+                type="button"
+                className="text-sm font-semibold text-danger"
+                onClick={() => del.mutate(p.id)}
+              >
+                Șterge
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-4 hidden overflow-x-auto rounded-xl border border-border bg-elevated md:block">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-border text-xs tracking-wide text-subtle uppercase">
             <tr>
@@ -110,13 +161,22 @@ function AdminProducts() {
                     </button>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <Link
-                      to="/admin/produs/$id"
-                      params={{ id: p.id }}
-                      className="text-sm font-semibold text-primary"
-                    >
-                      Editează
-                    </Link>
+                    <div className="flex flex-col items-end gap-1">
+                      <Link
+                        to="/admin/produs/$id"
+                        params={{ id: p.id }}
+                        className="text-sm font-semibold text-primary"
+                      >
+                        Editează
+                      </Link>
+                      <button
+                        type="button"
+                        className="text-sm font-semibold text-danger"
+                        onClick={() => del.mutate(p.id)}
+                      >
+                        Șterge
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -124,6 +184,9 @@ function AdminProducts() {
           </tbody>
         </table>
       </div>
+      {products.length === 0 ? (
+        <p className="mt-6 text-center text-sm text-muted">Niciun produs. Pune primul pe tarabă.</p>
+      ) : null}
     </div>
   );
 }
