@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f4eee4;
+  --color-elevated: #fffbf3;
+  --color-sunken: #e8dfd0;
+  --color-fg: #1c1712;
+  --color-muted: #5c5348;
+  --color-subtle: #8a7f72;
+  --color-primary: #1b5e20;
+  --color-primary-fg: #f7f3ea;
+  --color-accent: #b5522a;
+  --color-accent-fg: #fff8f2;
+  --color-border: #d8ccb8;
+  --color-ring: #1b5e20;
+  --color-panel: #eef3ec;
+  --color-panel-fg: #1c1712;
+  --color-danger: #9b2c2c;
+  --color-star: #f5b301;
+  --color-facebook: #1877f2;
+  --color-instagram: #c13584;
+  --color-youtube: #ff0000;
+  --color-tiktok: #fe2c55;
+  --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-price: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --shadow-soft: 0 1px 2px #1c17120f, 0 8px 24px #1c17120f;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html,
+  body,
+  #app,
+  .app-shell {
+    width: 100%;
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    height: var(--app-h, 100dvh);
+    max-height: 100%;
+    max-height: -webkit-fill-available;
+    max-height: 100dvh;
+    max-height: var(--app-h, 100dvh);
+    overflow: hidden;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+html.dark {
+  --color-bg: #16130f;
+  --color-elevated: #211c16;
+  --color-sunken: #0f0d0a;
+  --color-fg: #f3ece3;
+  --color-muted: #cbbba8;
+  --color-subtle: #9a8c7c;
+  --color-primary: #7cbf7a;
+  --color-primary-fg: #102010;
+  --color-accent: #e08a62;
+  --color-accent-fg: #2a1208;
+  --color-border: #3a3228;
+  --color-ring: #7cbf7a;
+  --color-panel: #1c241c;
+  --color-panel-fg: #f3ece3;
+  --color-danger: #f0a0a0;
+  --color-star: #ffc53d;
+  --color-facebook: #4b91f7;
+  --color-instagram: #e05aa3;
+  --color-youtube: #ff5a5a;
+  --color-tiktok: #ff5d80;
+}
+
+html[data-text="large"] { font-size: 18px; }
+html[data-text="xl"] { font-size: 20px; }
+html[data-font="barlow"] {
+  --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-price: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
+}
+html[data-font="plex"] {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-price: "IBM Plex Sans Condensed", ui-sans-serif, system-ui, sans-serif;
+}
+html[data-font="rotund"] {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-price: "Oswald", ui-sans-serif, system-ui, sans-serif;
+}
+
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.tab-bar { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+@keyframes splash-out {
+  0% { opacity: 1; }
+  55% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+.splash-screen {
+  animation: splash-out 0.22s ease-in forwards;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-screen { animation-duration: 0.12s; }
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.75rem;
+  row-gap: 1.25rem;
+  align-items: start;
+}
+.product-grid > * {
+  min-width: 0;
+  contain: layout paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 20rem;
+}
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+.tile-grid > * { min-width: 0; }
+.ad-frame img { transform: none; animation: none; }
+.ad-slide { transition: transform 0.5s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
