@@ -10,7 +10,7 @@ export function OtherApps({
 }) {
   if (!apps.length) return empty ? <>{empty}</> : null;
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-4">
       {apps.map((a) => (
         <li key={a.id}>
           <AppCard app={a} />
@@ -24,19 +24,23 @@ export function AppCard({ app }: { app: AppLink }) {
   const inner = (
     <>
       {app.image ? (
-        <img src={app.image} alt="" className="size-16 shrink-0 rounded-lg object-cover" />
+        <img
+          src={app.image}
+          alt=""
+          className="w-full bg-white object-contain object-center"
+        />
       ) : (
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-sunken text-subtle">
-          <ExternalLink className="size-5" />
+        <span className="flex aspect-[5/2] w-full items-center justify-center bg-sunken text-subtle">
+          <ExternalLink className="size-8" />
         </span>
       )}
-      <span className="min-w-0 flex-1">
-        <span className="block font-display text-base font-bold leading-tight">{app.title}</span>
+      <span className="block px-3 py-2.5">
+        <span className="block font-display text-lg font-bold leading-tight">{app.title}</span>
         {app.body ? (
           <span className="mt-0.5 block text-sm font-light leading-snug text-muted">{app.body}</span>
         ) : null}
         {app.url ? (
-          <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+          <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary">
             Deschide
             <ExternalLink className="size-3" />
           </span>
@@ -45,10 +49,10 @@ export function AppCard({ app }: { app: AppLink }) {
     </>
   );
 
+  const cls = "block overflow-hidden rounded-xl border border-border bg-elevated shadow-soft";
+
   if (!app.url) {
-    return (
-      <div className="flex items-center gap-3 rounded-xl border border-border bg-elevated p-3">{inner}</div>
-    );
+    return <div className={cls}>{inner}</div>;
   }
 
   const external = /^https?:\/\//i.test(app.url);
@@ -57,7 +61,7 @@ export function AppCard({ app }: { app: AppLink }) {
       href={app.url}
       target={external ? "_blank" : undefined}
       rel={external ? "noreferrer" : undefined}
-      className="flex items-center gap-3 rounded-xl border border-border bg-elevated p-3"
+      className={cls}
     >
       {inner}
     </a>

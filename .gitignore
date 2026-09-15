@@ -1,0 +1,12 @@
+node_modules/
+.tanstack/
+.vercel/
+.grok/
+dist/
+.output/
+.data/
+*.local
+.DS_Store
+artifacts/
+attachments/
+screenshots/

@@ -4,7 +4,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { AppShell } from "@/components/app-shell";
 import { HomeNotice } from "@/components/home-notice";
 import { LastBuys } from "@/components/last-buys";
-import { ProducerCard } from "@/components/producer-card";
+import { ProducerCard, MoreProducersCard } from "@/components/producer-card";
 import { SearchBar } from "@/components/search-bar";
 import { getCatalog } from "@/lib/catalog-fns";
 import { useShop } from "@/lib/store";
@@ -64,9 +64,10 @@ function Home() {
             </Link>
           </div>
           <div className="tile-grid mt-3">
-            {producers.map((p) => (
+            {producers.slice(0, 5).map((p) => (
               <ProducerCard key={p.id} producer={p} />
             ))}
+            <MoreProducersCard />
           </div>
         </section>
 

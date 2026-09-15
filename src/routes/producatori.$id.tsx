@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MapPin, Phone } from "lucide-react";
+import { Heart, MapPin, Pencil, Phone, Plus } from "lucide-react";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/app-shell";
+import { ImageField } from "@/components/image-field";
 import { ProductCard, ProductGrid } from "@/components/product-card";
 import { RatingBadge } from "@/components/producer-card";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,12 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { WhatsAppIcon } from "@/components/wa-icon";
 import { SocialRow } from "@/components/social-row";
-import { createMessage } from "@/lib/catalog-fns";
+import { createMessage, saveProducer } from "@/lib/catalog-fns";
 import { intlPhone, waDigits } from "@/lib/order-message";
 import { DEFAULT_PRODUCER_SOCIAL_INTRO, pickSocial } from "@/lib/social";
-import { useCatalog } from "@/lib/use-catalog";
+import { useShop } from "@/lib/store";
+import { catalogQueryKey, useCatalog } from "@/lib/use-catalog";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/producatori/$id")({ component: ProducerPage });
 
@@ -26,6 +29,12 @@ function ProducerPage() {
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name, "ro"));
   const story = data?.stories.find((s) => s.producerId === id);
+  const session = useShop((s) => s.session);
+  const favoriteProducers = useShop((s) => s.favoriteProducers);
+  const toggleFavoriteProducer = useShop((s) => s.toggleFavoriteProducer);
+  const loved = favoriteProducers.includes(id);
+  const isOwner = session.role === "producer" && session.producerId === id;
+  const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [body, setBody] = useState("");
@@ -67,6 +76,14 @@ function ProducerPage() {
           <img src={producer.image} alt="" className="aspect-[2/1] w-full object-cover" />
           <RatingBadge rating={producer.rating} count={producer.ratingCount} className="top-2 left-3" />
           <div className="absolute top-2 right-3 z-10 flex gap-1.5">
+            <button
+              type="button"
+              aria-label={loved ? "Scoate ferma de la favorite" : "Pune ferma la favorite"}
+              onClick={() => toggleFavoriteProducer(id)}
+              className="flex size-11 items-center justify-center rounded-full bg-bg/90 text-primary shadow-soft"
+            >
+              <Heart className={cn("size-5", loved && "fill-primary")} />
+            </button>
             {waHref ? (
               <a
                 href={waHref}
@@ -95,26 +112,54 @@ function ProducerPage() {
           />
         </div>
         <div className="px-4 pt-3">
-          <h1 className="font-display text-2xl font-semibold">{producer.name}</h1>
-          <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
-            <MapPin className="size-3.5 text-primary" />
-            <span className="tabular-nums">{producer.km.toLocaleString("ro-RO")} km</span>
-            <span>
-              · {producer.village}, {producer.county}
-            </span>
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl font-semibold">{producer.name}</h1>
+              <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
+                <MapPin className="size-3.5 text-primary" />
+                <span className="tabular-nums">{producer.km.toLocaleString("ro-RO")} km</span>
+                <span>
+                  · {producer.village}, {producer.county}
+                </span>
+              </p>
+            </div>
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={() => setEditing((v) => !v)}
+                className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full border border-border bg-elevated px-3 text-sm font-semibold"
+              >
+                <Pencil className="size-3.5" />
+                {editing ? "Gata" : "Edit"}
+              </button>
+            ) : null}
+          </div>
           {story ? (
             <Link to="/povesti/$slug" params={{ slug: story.slug }} className="mt-1 inline-block text-xs font-semibold text-primary">
               {story.title} →
             </Link>
           ) : null}
 
+          {isOwner && editing ? <ProducerPageEditor producerId={id} /> : null}
+
           <SocialRow social={pickSocial(producer)} fallbackIntro={DEFAULT_PRODUCER_SOCIAL_INTRO} />
 
-          <h2 className="mt-5 text-base font-semibold">Marfa de azi</h2>
-          <ProductGrid className="mt-2" everyFifth>
+          <div className="mt-5 flex items-end justify-between gap-3">
+            <h2 className="text-base font-semibold">Marfa de azi</h2>
+            {isOwner ? (
+              <Link
+                to="/admin/produs/$id"
+                params={{ id: "nou" }}
+                className="inline-flex h-9 items-center gap-1 rounded-full bg-primary px-3 text-xs font-semibold text-primary-fg"
+              >
+                <Plus className="size-3.5" />
+                Adaugă produs
+              </Link>
+            ) : null}
+          </div>
+          <ProductGrid className="product-grid-dense mt-2">
             {products.map((p) => (
-              <ProductCard key={p.id} product={p} producer={producer} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </ProductGrid>
 
@@ -151,5 +196,46 @@ function ProducerPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function ProducerPageEditor({ producerId }: { producerId: string }) {
+  const { data } = useCatalog();
+  const producer = data?.producers.find((p) => p.id === producerId);
+  const qc = useQueryClient();
+  const setFlash = useShop((s) => s.setFlash);
+  const [cover, setCover] = useState(producer?.image ?? "");
+  const [avatar, setAvatar] = useState(producer?.avatar || producer?.image || "");
+  const [blurb, setBlurb] = useState(producer?.blurb ?? "");
+  const save = useMutation({
+    mutationFn: () => {
+      if (!producer) throw new Error("missing");
+      const { blocked: _b, warningCount: _w, ...rest } = producer;
+      return saveProducer({
+        data: { ...rest, image: cover, avatar, blurb },
+      });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: catalogQueryKey });
+      setFlash("Pagina fermei e salvată");
+    },
+  });
+  if (!producer) return null;
+  return (
+    <div className="mt-4 space-y-3 rounded-xl border border-dashed border-primary/40 bg-elevated p-3">
+      <p className="text-sm font-semibold">Editezi pagina fermei</p>
+      <ImageField label="Copertă" value={cover} onChange={setCover} />
+      <ImageField label="Avatar" value={avatar} onChange={setAvatar} />
+      <div>
+        <Label htmlFor="blurb">Câteva vorbe</Label>
+        <Textarea id="blurb" value={blurb} onChange={(e) => setBlurb(e.target.value)} />
+      </div>
+      <Button type="button" className="w-full" disabled={save.isPending} onClick={() => save.mutate()}>
+        {save.isPending ? "Se salvează…" : "Salvează pagina"}
+      </Button>
+      <Link to="/admin/produs/$id" params={{ id: "nou" }} className="block text-center text-sm font-semibold text-primary">
+        Adaugă un produs cu poză și preț →
+      </Link>
+    </div>
   );
 }

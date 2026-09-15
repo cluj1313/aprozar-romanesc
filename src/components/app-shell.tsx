@@ -5,6 +5,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { CartBar } from "@/components/cart-bar";
 import { FlashToast } from "@/components/flash-toast";
 import { Header } from "@/components/header";
+import { OrderShareQueue } from "@/components/order-share-queue";
 import { TabBar } from "@/components/tab-bar";
 import { touchVisitor } from "@/lib/platform-fns";
 import { appPageQueryKey, visitorKey } from "@/lib/use-app-page";
@@ -22,6 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       <div className="mt-auto shrink-0 bg-bg">
+        <OrderShareQueue />
         {onPay ? <AdSlot position="checkout_more" className="px-4 pb-1" /> : null}
         <CartBar />
         {onHome ? <AdSlot position="home_bottom" /> : null}

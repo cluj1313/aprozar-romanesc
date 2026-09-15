@@ -31,8 +31,7 @@ function CosPage() {
 
   const groups = groupCart(items, data.products, data.producers);
   const totals = cartTotals(groups);
-  const lines = groups.flatMap((g) => g.items.map((i) => ({ ...i, producer: g.producer })));
-  const shopping = lines.length > 0;
+  const shopping = groups.some((g) => g.items.length > 0);
 
   return (
     <AppShell>
@@ -41,17 +40,48 @@ function CosPage() {
 
         {shopping ? (
           <>
-            <ul className="mt-2">
-              {lines.map((i) => (
-                <CartLine
-                  key={i.product.id}
-                  product={i.product}
-                  producer={i.producer}
-                  qty={i.qty}
-                  lineBani={i.lineBani}
-                />
-              ))}
-            </ul>
+            {groups.map((g) => (
+              <section key={g.producer.id} className="mt-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <Link
+                    to="/producatori/$id"
+                    params={{ id: g.producer.id }}
+                    className="min-w-0 truncate font-semibold"
+                  >
+                    {g.producer.name}
+                  </Link>
+                  <p className="shrink-0 font-price text-sm font-semibold tabular-nums">
+                    {formatLei(g.subtotalBani)}
+                  </p>
+                </div>
+                <ul>
+                  {g.items.map((i) => (
+                    <CartLine
+                      key={i.product.id}
+                      product={i.product}
+                      qty={i.qty}
+                      lineBani={i.lineBani}
+                    />
+                  ))}
+                </ul>
+                {g.deliveryBani > 0 ? (
+                  <p className="text-sm text-muted">Drum {formatLei(g.deliveryBani)}</p>
+                ) : null}
+                {!g.minOk ? (
+                  <p className="mt-1 text-sm text-danger">
+                    Minim la ferma asta: mai pui {formatLei(g.minMissingBani)}.
+                  </p>
+                ) : null}
+              </section>
+            ))}
+            {groups.length > 1 ? (
+              <div className="mt-4 flex items-baseline justify-between border-t border-border pt-3">
+                <p className="font-semibold">Total {groups.length} ferme</p>
+                <p className="font-price text-lg font-semibold tabular-nums text-primary">
+                  {formatLei(totals.totalBani)}
+                </p>
+              </div>
+            ) : null}
             <Button asChild className="mt-4 w-full rounded-full" size="lg">
               <Link to="/comanda">Comandă acum · {formatLei(totals.totalBani)}</Link>
             </Button>

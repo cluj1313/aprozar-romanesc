@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { QtyStepper } from "@/components/qty-stepper";
 import { formatLei, formatQty } from "@/lib/money";
-import { stageOf } from "@/lib/order-status";
+import { farmLabel, stageOf } from "@/lib/order-status";
 import { useShop } from "@/lib/store";
 import type { Product, SavedOrder, SavedOrderItem } from "@/lib/types";
 import { useCatalog } from "@/lib/use-catalog";
@@ -40,8 +40,15 @@ export function PastOrders({ orders }: { orders: SavedOrder[] }) {
                 aria-expanded={open}
               >
                 <span className="min-w-0">
-                  <span className="block font-medium tabular-nums">{formatWhen(o.createdAt)}</span>
-                  <span className="block truncate text-xs text-muted">{stage.title}</span>
+                  <span className="flex items-center gap-1.5">
+                    <OrderThumbs items={o.items} />
+                    <span className="min-w-0">
+                      <span className="block font-medium tabular-nums">{formatWhen(o.createdAt)}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {farmLabel(o)} · {stage.title}
+                      </span>
+                    </span>
+                  </span>
                 </span>
                 <span className="flex items-center gap-2 font-semibold text-primary">
                   <span className="tabular-nums">{formatLei(o.totalBani)}</span>
@@ -89,59 +96,66 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
     <div className="border-t border-border">
       <p className="px-4 pt-3 text-sm font-semibold text-primary">{stage.title}</p>
       <p className="px-4 text-xs text-muted">{stage.hint}</p>
-      <ul>
-        {order.items.map((item) => {
-          const live = liveById.get(item.productId);
-          const cartQty = cartItems.find((x) => x.productId === item.productId)?.qty ?? 0;
-          const step = live?.step || item.step || 1;
-          const onTaraba = Boolean(live);
-          return (
-            <li
-              key={item.productId}
-              className="flex items-start gap-3 border-b border-border px-4 py-3 last:border-0"
-            >
-              <ReceiptPhoto item={item} live={live} />
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold leading-snug">{item.productName}</p>
-                <p className="mt-0.5 text-sm text-muted">{item.producerName}</p>
-                <p className="mt-0.5 text-xs text-subtle">
-                  {formatQty(item.qty, item.unit)}
-                  {item.fulfillment === "livrare" ? " · livrare" : " · ridicare"}
-                </p>
-                {!onTaraba ? (
-                  <p className="mt-1 text-xs text-warn">Nu mai e pe tarabă</p>
-                ) : null}
-              </div>
-              <div
-                className="flex shrink-0 flex-col items-end gap-2"
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                <p className="font-price font-semibold text-primary">{formatLei(item.lineBani)}</p>
-                {onTaraba ? (
-                  <QtyStepper
-                    allowZero
-                    qty={cartQty}
-                    step={step}
-                    unit={item.unit}
-                    onChange={(q) => {
-                      const next = cartQty <= 0 && q > 0 ? item.qty : q;
-                      setMany([
-                        {
-                          productId: item.productId,
-                          qty: next,
-                          step,
-                          fulfillment: item.fulfillment,
-                        },
-                      ]);
-                    }}
-                  />
-                ) : null}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {groupReceipt(order.items).map((farm) => (
+        <div key={farm.id}>
+          <div className="flex items-baseline justify-between gap-3 px-4 pt-3">
+            <p className="min-w-0 truncate text-sm font-semibold">{farm.name}</p>
+            <p className="shrink-0 text-xs tabular-nums text-muted">{formatLei(farm.total)}</p>
+          </div>
+          <ul>
+            {farm.items.map((item) => {
+              const live = liveById.get(item.productId);
+              const cartQty = cartItems.find((x) => x.productId === item.productId)?.qty ?? 0;
+              const step = live?.step || item.step || 1;
+              const onTaraba = Boolean(live);
+              return (
+                <li
+                  key={item.productId}
+                  className="flex items-start gap-3 border-b border-border px-4 py-3 last:border-0"
+                >
+                  <ReceiptPhoto item={item} live={live} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold leading-snug">{item.productName}</p>
+                    <p className="mt-0.5 text-xs text-subtle">
+                      {formatQty(item.qty, item.unit)}
+                      {item.fulfillment === "livrare" ? " · livrare" : " · ridicare"}
+                    </p>
+                    {!onTaraba ? (
+                      <p className="mt-1 text-xs text-warn">Nu mai e pe tarabă</p>
+                    ) : null}
+                  </div>
+                  <div
+                    className="flex shrink-0 flex-col items-end gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <p className="font-price font-semibold text-primary">{formatLei(item.lineBani)}</p>
+                    {onTaraba ? (
+                      <QtyStepper
+                        allowZero
+                        qty={cartQty}
+                        step={step}
+                        unit={item.unit}
+                        onChange={(q) => {
+                          const next = cartQty <= 0 && q > 0 ? item.qty : q;
+                          setMany([
+                            {
+                              productId: item.productId,
+                              qty: next,
+                              step,
+                              fulfillment: item.fulfillment,
+                            },
+                          ]);
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
       {order.deliveryBani > 0 ? (
         <p className="px-4 pt-2 text-sm text-muted">Drum {formatLei(order.deliveryBani)}</p>
       ) : null}
@@ -161,6 +175,38 @@ function OrderReceipt({ order }: { order: SavedOrder }) {
         <div className="h-3" />
       )}
     </div>
+  );
+}
+
+function groupReceipt(items: SavedOrderItem[]) {
+  const map = new Map<string, SavedOrderItem[]>();
+  for (const item of items) {
+    const list = map.get(item.producerId) ?? [];
+    list.push(item);
+    map.set(item.producerId, list);
+  }
+  return [...map.entries()].map(([id, list]) => ({
+    id,
+    name: list[0]?.producerName ?? "Fermă",
+    items: list,
+    total: list.reduce((s, i) => s + i.lineBani, 0),
+  }));
+}
+
+function OrderThumbs({ items }: { items: SavedOrderItem[] }) {
+  const photos = items.map((i) => i.image).filter(Boolean).slice(0, 3);
+  if (!photos.length) return null;
+  return (
+    <span className="flex shrink-0 -space-x-1.5">
+      {photos.map((src, i) => (
+        <img
+          key={`${src}-${i}`}
+          src={src}
+          alt=""
+          className="size-8 rounded-md object-cover outline outline-1 outline-bg"
+        />
+      ))}
+    </span>
   );
 }
 

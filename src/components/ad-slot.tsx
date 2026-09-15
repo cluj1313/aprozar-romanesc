@@ -13,8 +13,9 @@ export function AdBanner({
   className,
   fill,
   compact,
+  producerName,
 }: {
-  ad: Pick<Ad, "title" | "body" | "image" | "orientation"> & { linkUrl?: string };
+  ad: Pick<Ad, "id" | "title" | "body" | "image" | "orientation"> & { linkUrl?: string };
   producerName?: string;
   className?: string;
   fill?: boolean;
@@ -23,33 +24,57 @@ export function AdBanner({
   const thin = ad.orientation !== "vertical";
   const hasImg = Boolean(ad.image);
   const external = /^https?:\/\//i.test(ad.linkUrl ?? "");
+  const lead = isLeadAd(ad);
 
   if (compact) {
-    if (hasImg) {
+    if (lead) {
       return (
-        <div className={cn("relative h-full w-full overflow-hidden bg-primary", className)}>
-          <img src={ad.image} alt="" className="absolute inset-0 size-full object-cover object-center" />
+        <div className={cn("relative h-full w-full overflow-hidden bg-[#0d47a1] text-white", className)}>
+          <img
+            src="/images/mesteri-bg.jpg"
+            alt=""
+            className="absolute inset-0 size-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-[#0d47a1]/72" />
+          <div className="relative flex h-full items-center gap-2 px-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-display text-[15px] font-semibold tracking-wide uppercase">
+                Servicii Locale
+              </p>
+              <p className="mt-0.5 truncate text-[11px] leading-snug text-white/90">
+                Toți meșterii din jurul tău
+              </p>
+            </div>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-[#f5c518] px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#0d47a1] uppercase">
+              Vezi aici
+              <span className="ms-0.5 text-xs leading-none">›</span>
+            </span>
+            <img
+              src="/images/servicii-logo.png"
+              alt=""
+              className="size-10 shrink-0 rounded-full object-cover outline outline-2 outline-white/40"
+            />
+          </div>
         </div>
       );
     }
     return (
-      <div
-        className={cn(
-          "flex h-full w-full items-center gap-2 bg-primary px-3 text-primary-fg",
-          className,
-        )}
-      >
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-base font-semibold leading-tight">{ad.title}</p>
+      <div className={cn("relative h-full w-full overflow-hidden bg-primary text-primary-fg", className)}>
+        {hasImg ? (
+          <img src={ad.image} alt="" className="absolute inset-0 size-full object-cover object-center" />
+        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-r from-fg/80 via-fg/45 to-fg/15" />
+        <div className="relative flex h-full min-w-0 flex-col justify-center px-3">
+          {producerName ? (
+            <p className="truncate text-[11px] font-semibold tracking-wide text-primary-fg/90 uppercase">
+              {producerName}
+            </p>
+          ) : null}
+          <p className="truncate font-display text-[15px] font-semibold leading-tight">{ad.title}</p>
           {ad.body ? (
-            <p className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-primary-fg/90">{ad.body}</p>
+            <p className="mt-0.5 truncate text-[11px] leading-snug text-primary-fg/90">{ad.body}</p>
           ) : null}
         </div>
-        {external ? (
-          <span className="shrink-0 rounded-full bg-[#f5c518] px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#163e18] uppercase">
-            Vezi aici
-          </span>
-        ) : null}
       </div>
     );
   }
@@ -176,11 +201,11 @@ export function AdSlot({ position, className }: { position: AdPosition; classNam
   if (blocked || !ads.length) return null;
 
   return (
-    <div className={cn("px-4 pb-2", className)}>
+    <div className={cn(compact ? "px-4 pb-1" : "px-4 pb-2", className)}>
       <div
         className={cn(
           "relative overflow-hidden rounded-xl bg-primary text-primary-fg shadow-soft",
-          compact ? "h-[4.5rem] rounded-lg" : vertical ? "aspect-[3/1]" : "aspect-[5/2]",
+          compact ? "h-16 rounded-md" : vertical ? "aspect-[3/1]" : "aspect-[5/2]",
         )}
       >
         {slides.map((slide, n) => {
@@ -196,7 +221,14 @@ export function AdSlot({ position, className }: { position: AdPosition; classNam
               ? `translate3d(${offset * 100}%, 0, 0)`
               : `translate3d(0, ${offset * 100}%, 0)`,
           };
-          const inner = <AdBanner ad={slide} fill compact={compact} />;
+          const inner = (
+            <AdBanner
+              ad={slide}
+              fill
+              compact={compact}
+              producerName={data?.producers.find((p) => p.id === slide.producerId)?.name}
+            />
+          );
           if ("external" in href) {
             return (
               <a
@@ -227,7 +259,7 @@ export function AdSlot({ position, className }: { position: AdPosition; classNam
             </Link>
           );
         })}
-        {loop ? (
+        {loop && !compact ? (
           <div className="pointer-events-none absolute end-2 top-2 z-10 flex gap-1" aria-hidden>
             {ads.map((item, n) => (
               <span

@@ -23,6 +23,7 @@ type Contact = { name: string; phone: string; address?: string };
 type ShopState = {
   items: CartItem[];
   favorites: string[];
+  favoriteProducers: string[];
   session: Session;
   prefs: Prefs;
   filters: BrowseFilters;
@@ -56,6 +57,7 @@ type ShopState = {
   remove: (productId: string) => void;
   clear: () => void;
   toggleFavorite: (productId: string) => void;
+  toggleFavoriteProducer: (producerId: string) => void;
   setSession: (session: Session) => void;
   setPrefs: (prefs: Partial<Prefs>) => void;
   setFilters: (filters: Partial<BrowseFilters>) => void;
@@ -158,6 +160,7 @@ export const useShop = create<ShopState>()(
     (set, get) => ({
       items: [],
       favorites: [],
+      favoriteProducers: [],
       session: { role: "guest" },
       prefs: { theme: "light", text: "normal", cards: "tall", font: "oswald" },
       filters: { km: null, category: null },
@@ -251,6 +254,14 @@ export const useShop = create<ShopState>()(
             : [...fav, productId],
         });
       },
+      toggleFavoriteProducer: (producerId) => {
+        const fav = get().favoriteProducers;
+        set({
+          favoriteProducers: fav.includes(producerId)
+            ? fav.filter((id) => id !== producerId)
+            : [...fav, producerId],
+        });
+      },
       setSession: (session) => set({ session }),
       setPrefs: (prefs) => set({ prefs: { ...get().prefs, ...prefs } }),
       setFilters: (filters) => set({ filters: { ...get().filters, ...filters } }),
@@ -258,7 +269,7 @@ export const useShop = create<ShopState>()(
       rememberOrder: (order) => {
         const next = { ...order, status: order.status ?? ("noua" as const) };
         const myOrders = [next, ...get().myOrders.filter((o) => o.id !== order.id)].slice(0, 20);
-        set({ myOrders, myOrderIds: idsFrom(myOrders), showShare: false, shareQueue: [] });
+        set({ myOrders, myOrderIds: idsFrom(myOrders) });
       },
       hydrateOrders: (orders) => {
         if (!orders.length) return;
@@ -339,6 +350,7 @@ export const useShop = create<ShopState>()(
       partialize: (s) => ({
         items: s.items,
         favorites: s.favorites,
+        favoriteProducers: s.favoriteProducers,
         session: publicSession(s.session),
         prefs: s.prefs,
         filters: s.filters,
@@ -346,6 +358,7 @@ export const useShop = create<ShopState>()(
         myOrders: s.myOrders,
         contact: s.contact,
         savedLogins: s.savedLogins,
+        shareQueue: s.shareQueue,
         adShareCredits: s.adShareCredits,
         promoStartedAt: s.promoStartedAt,
         silencedNoticeIds: s.silencedNoticeIds,
@@ -364,6 +377,10 @@ export const useShop = create<ShopState>()(
           ...p,
           myOrders,
           myOrderIds,
+          favoriteProducers: Array.isArray(p.favoriteProducers)
+            ? p.favoriteProducers
+            : current.favoriteProducers,
+          shareQueue: Array.isArray(p.shareQueue) ? p.shareQueue : current.shareQueue,
           session: publicSession(p.session ?? current.session),
           contact: p.contact ?? current.contact,
           sessionClosedNoticeIds: [],

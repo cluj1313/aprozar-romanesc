@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProducerOnly } from "@/components/producer-only";
+import { ImageField } from "@/components/image-field";
 import { SocialEditor } from "@/components/social-row";
 import { saveProducer } from "@/lib/catalog-fns";
 import { formatLei, parseLeiToBani } from "@/lib/money";
@@ -72,6 +73,10 @@ function ProducerForm({ producer }: { producer: Producer }) {
           </div>
         </div>
       </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <ImageField label="Copertă" value={form.image} onChange={(v) => set("image", v)} />
+        <ImageField label="Avatar" value={form.avatar || ""} onChange={(v) => set("avatar", v)} />
+      </div>
       <div className="mt-3">
         <Label>Vorbe despre fermă</Label>
         <Textarea value={form.blurb} onChange={(e) => set("blurb", e.target.value)} />
@@ -126,6 +131,13 @@ function ProducerForm({ producer }: { producer: Producer }) {
         Acum: drum {formatLei(form.deliveryFeeBani)}
         {form.freeOverBani ? `, gratuit de la ${formatLei(form.freeOverBani)}` : ""}
       </p>
+      <Link
+        to="/producatori/$id"
+        params={{ id: producer.id }}
+        className="mt-2 inline-block text-sm font-semibold text-primary"
+      >
+        Vezi pagina publică →
+      </Link>
       <Button type="submit" className="mt-3" disabled={mutation.isPending}>
         {mutation.isPending ? "Se salvează…" : "Salvează ferma"}
       </Button>

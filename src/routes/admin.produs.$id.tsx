@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ProducerOnly } from "@/components/producer-only";
+import { ImageField } from "@/components/image-field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { PriceLive } from "@/components/price-live";
@@ -47,7 +48,7 @@ function ProductEditor() {
       bulkPriceBani: null,
       step: 0.5,
       stock: 10,
-      image: "/images/rosii.jpg",
+      image: "",
       blurb: "",
       visible: true,
       featured: false,
@@ -129,6 +130,7 @@ function ProductEditor() {
           <Field label="Câteva vorbe">
             <Textarea value={form.blurb} onChange={(e) => set("blurb", e.target.value)} />
           </Field>
+          <ImageField label="Poză" value={form.image} onChange={(v) => set("image", v)} />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Categorie">
               <select
@@ -199,22 +201,17 @@ function ProductEditor() {
               />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Pas (cât adaugi o dată)">
-              <Input
-                inputMode="decimal"
-                defaultValue={String(form.step)}
-                onBlur={(e) => {
-                  const n = Number(e.target.value.replace(",", ".")) || 1;
-                  set("step", n);
-                  setQty(roundToStep(n, n));
-                }}
-              />
-            </Field>
-            <Field label="Poză (cale)">
-              <Input value={form.image} onChange={(e) => set("image", e.target.value)} />
-            </Field>
-          </div>
+          <Field label="Pas (cât adaugi o dată)">
+            <Input
+              inputMode="decimal"
+              defaultValue={String(form.step)}
+              onBlur={(e) => {
+                const n = Number(e.target.value.replace(",", ".")) || 1;
+                set("step", n);
+                setQty(roundToStep(n, n));
+              }}
+            />
+          </Field>
           <div className="rounded-lg border border-border bg-sunken p-3">
             <p className="text-sm font-semibold">Preț mai bun la cantitate (opțional)</p>
             <div className="mt-2 grid grid-cols-2 gap-3">
@@ -252,7 +249,7 @@ function ProductEditor() {
           </label>
         </div>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.name}>
+          <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.name || !form.image}>
             {mutation.isPending ? "Se salvează…" : "Publică pe tarabă"}
           </Button>
           <Button type="button" variant="secondary" asChild>
@@ -260,12 +257,21 @@ function ProductEditor() {
           </Button>
         </div>
         {saved ? <p className="mt-2 text-sm text-primary">Salvat.</p> : null}
+        {!form.image ? (
+          <p className="mt-2 text-sm text-muted">Alege o poză din galerie sau fă una cu camera.</p>
+        ) : null}
       </div>
 
       <div>
         <p className="text-xs font-semibold tracking-wide text-subtle uppercase">Cum se vede prețul</p>
         <div className="mt-2 overflow-hidden rounded-xl border border-border bg-elevated shadow-soft">
-          <img src={preview.image} alt="" className="aspect-[3/2] w-full object-cover" />
+          {preview.image ? (
+            <img src={preview.image} alt="" className="aspect-[3/2] w-full object-cover" />
+          ) : (
+            <div className="flex aspect-[3/2] w-full items-center justify-center bg-sunken px-4 text-center text-sm text-muted">
+              Alege o poză din galerie sau fă una cu camera
+            </div>
+          )}
           <div className="p-4">
             <p className="text-xs text-subtle">{producer?.name}</p>
             <p className="font-display text-xl font-semibold">{preview.name || "Fără nume"}</p>

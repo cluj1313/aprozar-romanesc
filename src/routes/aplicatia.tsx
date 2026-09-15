@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppCover } from "@/components/app-cover";
+import { AppsEditor } from "@/components/apps-editor";
 import { AppShell } from "@/components/app-shell";
 import { OtherApps } from "@/components/other-apps";
 import { SocialRow } from "@/components/social-row";
 import { getAppPage } from "@/lib/platform-fns";
 import { DEFAULT_APP_SOCIAL_INTRO, pickSocial } from "@/lib/social";
 import { useShop } from "@/lib/store";
-import { useAppPage } from "@/lib/use-app-page";
+import { appPageQueryKey, useAppPage } from "@/lib/use-app-page";
+import { catalogQueryKey } from "@/lib/use-catalog";
+import { platformQueryKey } from "@/lib/use-platform";
 
 export const Route = createFileRoute("/aplicatia")({
   loader: () => getAppPage({ data: {} }),
@@ -18,6 +22,12 @@ function AplicatiaPage() {
   const { data } = useAppPage(initial);
   const page = data ?? initial;
   const session = useShop((s) => s.session);
+  const qc = useQueryClient();
+  const refreshApps = () => {
+    void qc.invalidateQueries({ queryKey: appPageQueryKey });
+    void qc.invalidateQueries({ queryKey: platformQueryKey });
+    void qc.invalidateQueries({ queryKey: catalogQueryKey });
+  };
 
   return (
     <AppShell>
@@ -61,7 +71,7 @@ function AplicatiaPage() {
                 empty={
                   session.role === "admin" ? (
                     <p className="text-sm font-light text-muted">
-                      Nicio altă aplicație încă. Adaug-o din Admin → Aplicația, cu poză și link.
+                      Nicio altă aplicație încă. Pune un banner și un link mai jos.
                     </p>
                   ) : (
                     <p className="text-sm font-light text-muted">
@@ -71,6 +81,9 @@ function AplicatiaPage() {
                 }
               />
             </div>
+            {session.role === "admin" ? (
+              <AppsEditor apps={page.apps} onDone={refreshApps} embedded />
+            ) : null}
           </section>
         </div>
       </div>

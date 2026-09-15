@@ -82,19 +82,19 @@ async function ensureSeed() {
   const sql = await getSql();
   await ensureProducerSocial(sql);
   const rows = await sql<{ c: number }>`select count(*)::int as c from producers`;
-  if ((rows[0]?.c ?? 0) > 0) return;
+  if ((rows[0]?.c ?? 0) === 0) {
   for (const p of SEED_PRODUCERS) {
     await sql`
       insert into producers (
         id, name, village, county, blurb, rating, rating_count, km,
         pickup, delivery, delivery_fee_bani, free_over_bani, min_order_bani,
-        phone, image, active,
+        phone, image, avatar, active,
         social_intro, social_facebook, social_instagram, social_youtube,
         social_tiktok, social_website
       ) values (
         ${p.id}, ${p.name}, ${p.village}, ${p.county}, ${p.blurb}, ${p.rating},
         ${p.ratingCount}, ${p.km}, ${p.pickup}, ${p.delivery}, ${p.deliveryFeeBani},
-        ${p.freeOverBani}, ${p.minOrderBani}, ${p.phone}, ${p.image}, ${p.active},
+        ${p.freeOverBani}, ${p.minOrderBani}, ${p.phone}, ${p.image}, ${p.avatar || p.image}, ${p.active},
         ${p.socialIntro}, ${p.facebook}, ${p.instagram}, ${p.youtube}, ${p.tiktok},
         ${p.website}
       )
@@ -118,14 +118,43 @@ async function ensureSeed() {
       values (${s.id}, ${s.slug}, ${s.producerId}, ${s.title}, ${s.excerpt}, ${s.body})
     `;
   }
+  }
+  await sql`
+    update products
+    set name = ${"Roșii Țărănești"}, slug = ${"rosii-taranesti"}
+    where id = ${"rosii"}
+  `;
+  await sql`
+    update stories
+    set title = ${"Roșiile țărănești ale lui Nelu"}, slug = ${"rosiile-taranesti-ale-lui-nelu"}
+    where id = ${"s-nelu"}
+  `;
+  await sql`
+    update producers
+    set blurb = ${"Roșii țărănești, ardei și vinete de pe aracii din curte. Nelu culege dimineața."}
+    where id = ${"nelu"}
+  `;
+  for (const p of SEED_PRODUCTS) {
+    await sql`
+      update products
+      set image = ${p.image}
+      where id = ${p.id}
+        and image not like ${"data:%"}
+        and image <> ${p.image}
+    `;
+  }
 }
 
+let producerAvatarReady = false;
+
 async function ensureProducerAvatar(sql: Awaited<ReturnType<typeof getSql>>) {
+  if (producerAvatarReady) return;
   await sql.query("alter table producers add column if not exists avatar text not null default ''");
   for (const p of SEED_PRODUCERS) {
     const avatar = p.avatar || p.image;
-    await sql`update producers set avatar = ${avatar} where id = ${p.id}`;
+    await sql`update producers set avatar = ${avatar} where id = ${p.id} and avatar = ''`;
   }
+  producerAvatarReady = true;
 }
 
 let producerSocialReady = false;
@@ -301,6 +330,7 @@ const producerInput = z.object({
   minOrderBani: z.number().int().nonnegative(),
   phone: z.string(),
   image: z.string(),
+  avatar: z.string().optional().default(""),
   active: z.boolean(),
   socialIntro: z.string().optional().default(""),
   facebook: z.string().optional().default(""),
@@ -314,20 +344,22 @@ export const saveProducer = createServerFn({ method: "POST" })
   .validator(producerInput)
   .handler(async ({ data }) => {
     const sql = await getSql();
+    await ensureProducerAvatar(sql);
     await ensureProducerSocial(sql);
     const social = normalizeSocial(pickSocial(data));
+    const avatar = data.avatar || data.image || "";
     await sql`
       insert into producers (
         id, name, village, county, blurb, rating, rating_count, km,
         pickup, delivery, delivery_fee_bani, free_over_bani, min_order_bani,
-        phone, image, active,
+        phone, image, avatar, active,
         social_intro, social_facebook, social_instagram, social_youtube,
         social_tiktok, social_website
       ) values (
         ${data.id}, ${data.name}, ${data.village}, ${data.county}, ${data.blurb},
         ${data.rating}, ${data.ratingCount}, ${data.km}, ${data.pickup}, ${data.delivery},
         ${data.deliveryFeeBani}, ${data.freeOverBani}, ${data.minOrderBani},
-        ${data.phone}, ${data.image}, ${data.active},
+        ${data.phone}, ${data.image}, ${avatar}, ${data.active},
         ${social.intro}, ${social.facebook}, ${social.instagram}, ${social.youtube},
         ${social.tiktok}, ${social.website}
       )
@@ -346,6 +378,7 @@ export const saveProducer = createServerFn({ method: "POST" })
         min_order_bani = excluded.min_order_bani,
         phone = excluded.phone,
         image = excluded.image,
+        avatar = excluded.avatar,
         active = excluded.active,
         social_intro = excluded.social_intro,
         social_facebook = excluded.social_facebook,

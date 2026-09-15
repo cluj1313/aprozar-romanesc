@@ -7,6 +7,7 @@ import { SuggestMore } from "@/components/suggest-more";
 import { Button } from "@/components/ui/button";
 import { createMessage, createOrder } from "@/lib/catalog-fns";
 import { cartTotals, groupCart } from "@/lib/cart-math";
+import { formatLei } from "@/lib/money";
 import { buildProducerPackets, openWhatsApp } from "@/lib/order-message";
 import { catalogQueryKey } from "@/lib/use-catalog";
 import { useShop } from "@/lib/store";
@@ -25,6 +26,8 @@ function ComandaPage() {
   const items = useShop((s) => s.items);
   const clear = useShop((s) => s.clear);
   const rememberOrder = useShop((s) => s.rememberOrder);
+  const setShareQueue = useShop((s) => s.setShareQueue);
+  const setFlash = useShop((s) => s.setFlash);
   const contact = useShop((s) => s.contact);
   const rememberContact = useShop((s) => s.rememberContact);
   const setProducerFulfillment = useShop((s) => s.setProducerFulfillment);
@@ -71,51 +74,81 @@ function ComandaPage() {
     });
 
   const packetsFor = (list: ReturnType<typeof orderItems>) =>
-    buildProducerPackets({
-      customerName: name.trim(),
-      customerPhone: phone.trim(),
-      address: deliveryOn ? address.trim() : "",
-      slot,
-      items: list,
-      totalBani: deliveryOn ? totals.totalBani : totals.productsBani,
-      deliveryBani: deliveryOn ? totals.deliveryBani : 0,
+    groups.flatMap((g) => {
+      const gItems = list.filter((i) => i.producerId === g.producer.id);
+      if (!gItems.length) return [];
+      const delivery = deliveryOn && g.producer.delivery ? g.deliveryBani : 0;
+      return buildProducerPackets({
+        customerName: name.trim(),
+        customerPhone: phone.trim(),
+        address: deliveryOn ? address.trim() : "",
+        slot,
+        items: gItems,
+        totalBani: g.subtotalBani + delivery,
+        deliveryBani: delivery,
+      });
     });
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const list = orderItems();
-      return createOrder({
-        data: {
-          customerName: name.trim(),
-          customerPhone: phone.trim(),
-          customerNote: note,
-          address: deliveryOn ? address.trim() : "",
-          items: list,
-          productsBani: totals.productsBani,
-          deliveryBani: deliveryOn ? totals.deliveryBani : 0,
-          totalBani: deliveryOn ? totals.totalBani : totals.productsBani,
-        },
-      });
+      const created: {
+        id: string;
+        items: typeof list;
+        productsBani: number;
+        deliveryBani: number;
+        totalBani: number;
+      }[] = [];
+      for (const g of groups) {
+        const gItems = list.filter((i) => i.producerId === g.producer.id);
+        if (!gItems.length) continue;
+        const delivery = deliveryOn && g.producer.delivery ? g.deliveryBani : 0;
+        const productsBani = g.subtotalBani;
+        const totalBani = productsBani + delivery;
+        const res = await createOrder({
+          data: {
+            customerName: name.trim(),
+            customerPhone: phone.trim(),
+            customerNote: note,
+            address: deliveryOn ? address.trim() : "",
+            items: gItems,
+            productsBani,
+            deliveryBani: delivery,
+            totalBani,
+          },
+        });
+        created.push({ id: res.id, items: gItems, productsBani, deliveryBani: delivery, totalBani });
+      }
+      return { created, packets: packetsFor(list) };
     },
     onSuccess: async (res) => {
-      const list = orderItems();
-      const packets = packetsFor(list);
-      rememberOrder({
-        id: res.id,
-        createdAt: new Date().toISOString(),
-        totalBani: deliveryOn ? totals.totalBani : totals.productsBani,
-        productsBani: totals.productsBani,
-        deliveryBani: deliveryOn ? totals.deliveryBani : 0,
-        address: deliveryOn ? address.trim() : "",
-        note,
-        customerName: name.trim(),
-        customerPhone: phone.trim(),
-        slot,
-        status: "noua",
-        items: list,
-      });
+      const when = new Date().toISOString();
+      for (const c of res.created) {
+        rememberOrder({
+          id: c.id,
+          createdAt: when,
+          totalBani: c.totalBani,
+          productsBani: c.productsBani,
+          deliveryBani: c.deliveryBani,
+          address: deliveryOn ? address.trim() : "",
+          note,
+          customerName: name.trim(),
+          customerPhone: phone.trim(),
+          slot,
+          status: "noua",
+          items: c.items,
+        });
+      }
       rememberContact({ name: name.trim(), phone: phone.trim(), address: address.trim() });
-      for (const p of packets) {
+      setShareQueue(res.packets.slice(1));
+      if (res.packets.length > 1) {
+        setFlash(
+          res.packets.length === 2
+            ? "Mai trimite comanda către cealaltă fermă"
+            : `Mai trimite comanda către încă ${res.packets.length - 1} ferme`,
+        );
+      }
+      for (const p of res.packets) {
         void createMessage({
           data: {
             producerId: p.producerId,
@@ -256,6 +289,31 @@ function ComandaPage() {
           </div>
 
           {error ? <p className="text-sm text-danger">{error}</p> : null}
+
+          <ul className="space-y-2 rounded-2xl border border-border bg-elevated px-4 py-3">
+            {groups.map((g) => {
+              const delivery = deliveryOn && g.producer.delivery ? g.deliveryBani : 0;
+              return (
+                <li key={g.producer.id} className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="min-w-0 truncate font-semibold">{g.producer.name}</span>
+                  <span className="shrink-0 tabular-nums">
+                    {formatLei(g.subtotalBani + delivery)}
+                    {delivery > 0 ? (
+                      <span className="ml-1 text-xs font-normal text-muted">cu drum</span>
+                    ) : null}
+                  </span>
+                </li>
+              );
+            })}
+            {groups.length > 1 ? (
+              <li className="flex items-baseline justify-between border-t border-border pt-2 font-semibold">
+                <span>Total</span>
+                <span className="tabular-nums text-primary">
+                  {formatLei(deliveryOn ? totals.totalBani : totals.productsBani)}
+                </span>
+              </li>
+            ) : null}
+          </ul>
 
           <SuggestMore
             excludeIds={items.map((i) => i.productId)}

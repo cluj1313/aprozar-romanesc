@@ -7,7 +7,7 @@ export const SEED_PRODUCERS: Producer[] = [
     name: "Grădina lui Nelu",
     village: "Săcueni",
     county: "Bihor",
-    blurb: "Roșii de inimă, ardei și vinete de pe aracii din curte. Nelu culege dimineața.",
+    blurb: "Roșii țărănești, ardei și vinete de pe aracii din curte. Nelu culege dimineața.",
     rating: 4.9,
     ratingCount: 87,
     km: 2.1,
@@ -120,7 +120,7 @@ export const SEED_PRODUCERS: Producer[] = [
 ];
 
 export const SEED_PRODUCTS: Product[] = [
-  { id: "rosii", slug: "rosii-de-inima", name: "Roșii de inimă", category: "legume", producerId: "nelu", unit: "kg", priceBani: 1250, bulkQty: 5, bulkPriceBani: 1100, step: 0.5, stock: 18, image: "/images/rosii.jpg", blurb: "Nelu le culege când crapă ușor la umăr.", visible: true, featured: true, sortOrder: 1 },
+  { id: "rosii", slug: "rosii-taranesti", name: "Roșii Țărănești", category: "legume", producerId: "nelu", unit: "kg", priceBani: 1250, bulkQty: 5, bulkPriceBani: 1100, step: 0.5, stock: 18, image: "/images/rosii.jpg", blurb: "Nelu le culege când crapă ușor la umăr.", visible: true, featured: true, sortOrder: 1 },
   { id: "ardei", slug: "ardei-capia", name: "Ardei capia", category: "legume", producerId: "nelu", unit: "kg", priceBani: 900, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 12, image: "/images/ardei.jpg", blurb: "Dulci, pentru cuptor sau zacuscă.", visible: true, featured: false, sortOrder: 2 },
   { id: "vinete", slug: "vinete", name: "Vinete", category: "legume", producerId: "nelu", unit: "kg", priceBani: 700, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 10, image: "/images/vinete.jpg", blurb: "Lucioase, pentru salată de vinete.", visible: true, featured: false, sortOrder: 3 },
   { id: "capsuni", slug: "capsuni", name: "Căpșuni", category: "fructe", producerId: "nelu", unit: "kg", priceBani: 1800, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 6, image: "/images/capsuni.jpg", blurb: "De pe rândurile de lângă șură, culese azi.", visible: true, featured: true, sortOrder: 4 },
@@ -132,19 +132,19 @@ export const SEED_PRODUCTS: Product[] = [
   { id: "paine", slug: "paine-de-casa", name: "Pâine de casă", category: "panificatie", producerId: "mama", unit: "buc", priceBani: 1200, bulkQty: 3, bulkPriceBani: 1100, step: 1, stock: 14, image: "/images/paine.jpg", blurb: "Frământată dimineața, coaptă în cuptor.", visible: true, featured: false, sortOrder: 10 },
   { id: "placinta", slug: "placinta-cu-branza", name: "Plăcintă cu brânză", category: "panificatie", producerId: "mama", unit: "buc", priceBani: 2200, bulkQty: null, bulkPriceBani: null, step: 1, stock: 8, image: "/images/placinta.jpg", blurb: "Foaie subțire, brânză de vaci din sat.", visible: true, featured: false, sortOrder: 11 },
   { id: "zacusca", slug: "zacusca-de-casa", name: "Zacuscă de casă", category: "muraturi", producerId: "mama", unit: "borcan", priceBani: 1800, bulkQty: 3, bulkPriceBani: 1600, step: 1, stock: 20, image: "/images/zacusca.jpg", blurb: "Ardei și vinete, fierte în ceaun.", visible: true, featured: false, sortOrder: 12 },
-  { id: "murati", slug: "castraveti-murati", name: "Castraveți murați", category: "muraturi", producerId: "mama", unit: "borcan", priceBani: 1400, bulkQty: null, bulkPriceBani: null, step: 1, stock: 15, image: "/images/zacusca.jpg", blurb: "În saramură, cu mărar și hrean.", visible: true, featured: false, sortOrder: 13 },
+  { id: "murati", slug: "castraveti-murati", name: "Castraveți murați", category: "muraturi", producerId: "mama", unit: "borcan", priceBani: 1400, bulkQty: null, bulkPriceBani: null, step: 1, stock: 15, image: "/images/castraveti-murati.jpg", blurb: "În saramură, cu mărar și hrean.", visible: true, featured: false, sortOrder: 13 },
   { id: "cas", slug: "cas-afumat", name: "Caș afumat", category: "lactate", producerId: "marin", unit: "kg", priceBani: 3500, bulkQty: null, bulkPriceBani: null, step: 0.2, stock: 6, image: "/images/cas-afumat.jpg", blurb: "Afumat pe fag, de la ferma de lângă Găești.", visible: true, featured: true, sortOrder: 14 },
   { id: "cascaval", slug: "cascaval-de-vaca", name: "Cașcaval de vacă", category: "lactate", producerId: "marin", unit: "kg", priceBani: 4200, bulkQty: null, bulkPriceBani: null, step: 0.2, stock: 5, image: "/images/cascaval.jpg", blurb: "Maturat în pivniță, se taie la cântar.", visible: true, featured: false, sortOrder: 15 },
   { id: "telemea", slug: "telemea-de-oaie", name: "Telemea de oaie", category: "lactate", producerId: "marin", unit: "kg", priceBani: 3800, bulkQty: null, bulkPriceBani: null, step: 0.2, stock: 7, image: "/images/telemea.jpg", blurb: "Sărată cât trebuie, din lapte de oaie.", visible: true, featured: false, sortOrder: 16 },
   { id: "mere", slug: "mere-ionatan", name: "Mere Ionatan", category: "fructe", producerId: "moise", unit: "kg", priceBani: 650, bulkQty: 5, bulkPriceBani: 550, step: 1, stock: 50, image: "/images/mere.jpg", blurb: "Din livada bătrână, culese cu mâna.", visible: true, featured: false, sortOrder: 17 },
   { id: "prune", slug: "prune", name: "Prune", category: "fructe", producerId: "moise", unit: "kg", priceBani: 800, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 22, image: "/images/prune.jpg", blurb: "Pentru gem sau de mâncat din palmă.", visible: true, featured: false, sortOrder: 18 },
-  { id: "piersici", slug: "piersici", name: "Piersici", category: "fructe", producerId: "moise", unit: "kg", priceBani: 1100, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 14, image: "/images/prune.jpg", blurb: "Coapte pe deal, miros a vară.", visible: true, featured: false, sortOrder: 19 },
+  { id: "piersici", slug: "piersici", name: "Piersici", category: "fructe", producerId: "moise", unit: "kg", priceBani: 1100, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 14, image: "/images/piersici.jpg", blurb: "Coapte pe deal, miros a vară.", visible: true, featured: false, sortOrder: 19 },
   { id: "dulceata", slug: "dulceata-de-cirese", name: "Dulceață de cireșe", category: "dulceturi", producerId: "moise", unit: "borcan", priceBani: 2400, bulkQty: null, bulkPriceBani: null, step: 1, stock: 12, image: "/images/dulceata.jpg", blurb: "Fiertură scurtă, fructe întregi.", visible: true, featured: false, sortOrder: 20 },
-  { id: "nuci", slug: "nuci-de-tara", name: "Nuci de țară", category: "altele", producerId: "moise", unit: "kg", priceBani: 2200, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 18, image: "/images/mere.jpg", blurb: "Uscate pe cuptor, se sparg ușor.", visible: true, featured: false, sortOrder: 21 },
+  { id: "nuci", slug: "nuci-de-tara", name: "Nuci de țară", category: "altele", producerId: "moise", unit: "kg", priceBani: 2200, bulkQty: null, bulkPriceBani: null, step: 0.5, stock: 18, image: "/images/nuci.jpg", blurb: "Uscate pe cuptor, se sparg ușor.", visible: true, featured: false, sortOrder: 21 },
   { id: "miere", slug: "miere-de-tei", name: "Miere de tei", category: "miere", producerId: "vasile", unit: "borcan", priceBani: 4500, bulkQty: 3, bulkPriceBani: 4200, step: 1, stock: 16, image: "/images/miere.jpg", blurb: "Nepasteurizată, din teiul de la Fetești.", visible: true, featured: true, sortOrder: 22 },
-  { id: "polen", slug: "polen-crud", name: "Polen crud", category: "miere", producerId: "vasile", unit: "borcan", priceBani: 3200, bulkQty: null, bulkPriceBani: null, step: 1, stock: 9, image: "/images/miere.jpg", blurb: "Păstrat la rece, din sezonul de tei.", visible: true, featured: false, sortOrder: 23 },
-  { id: "sirop", slug: "sirop-de-soc", name: "Sirop de soc", category: "bauturi", producerId: "vasile", unit: "sticla", priceBani: 2000, bulkQty: null, bulkPriceBani: null, step: 1, stock: 11, image: "/images/miere.jpg", blurb: "Flori culese dimineața, fierte cu lămâie.", visible: true, featured: false, sortOrder: 24 },
-  { id: "ceai", slug: "ceai-de-tei", name: "Ceai de tei", category: "ceaiuri", producerId: "vasile", unit: "punga", priceBani: 1400, bulkQty: null, bulkPriceBani: null, step: 1, stock: 20, image: "/images/stupina.jpg", blurb: "Flori uscate la umbră, pungă de 50 g.", visible: true, featured: false, sortOrder: 25 },
+  { id: "polen", slug: "polen-crud", name: "Polen crud", category: "miere", producerId: "vasile", unit: "borcan", priceBani: 3200, bulkQty: null, bulkPriceBani: null, step: 1, stock: 9, image: "/images/polen.jpg", blurb: "Păstrat la rece, din sezonul de tei.", visible: true, featured: false, sortOrder: 23 },
+  { id: "sirop", slug: "sirop-de-soc", name: "Sirop de soc", category: "bauturi", producerId: "vasile", unit: "sticla", priceBani: 2000, bulkQty: null, bulkPriceBani: null, step: 1, stock: 11, image: "/images/sirop-soc.jpg", blurb: "Flori culese dimineața, fierte cu lămâie.", visible: true, featured: false, sortOrder: 24 },
+  { id: "ceai", slug: "ceai-de-tei", name: "Ceai de tei", category: "ceaiuri", producerId: "vasile", unit: "punga", priceBani: 1400, bulkQty: null, bulkPriceBani: null, step: 1, stock: 20, image: "/images/ceai-tei.jpg", blurb: "Flori uscate la umbră, pungă de 50 g.", visible: true, featured: false, sortOrder: 25 },
 ];
 
 export const SEED_STORIES: Story[] = [
@@ -158,9 +158,9 @@ export const SEED_STORIES: Story[] = [
   },
   {
     id: "s-nelu",
-    slug: "rosiile-de-inima-ale-lui-nelu",
+    slug: "rosiile-taranesti-ale-lui-nelu",
     producerId: "nelu",
-    title: "Roșiile de inimă ale lui Nelu",
+    title: "Roșiile țărănești ale lui Nelu",
     excerpt: "Aracii din Săcueni și roșiile care crapă la umăr.",
     body: "Nelu nu culege roșia până nu crapă puțin la umăr — atunci e dulce. Aracii sunt din alun, puși în fiecare aprilie. În iulie, grădina miroase a frunză caldă și a pământ udat seara. Le pune în lădițe, cu hârtie între rânduri, ca să ajungă întregi la tine.",
   },

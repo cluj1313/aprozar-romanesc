@@ -101,11 +101,23 @@ export function ProducerHome() {
           <p className="mt-3 font-semibold">Mesaje</p>
           <p className="mt-0.5 text-xs text-muted">Reduceri, oferte, concediu</p>
         </Link>
-        <Link to="/admin/producatori" className="rounded-2xl bg-panel px-4 py-4 text-panel-fg">
-          <Warehouse className="size-5 text-primary" />
-          <p className="mt-3 font-semibold">Profilul fermei</p>
-          <p className="mt-0.5 text-xs text-muted">Poze, locație, contact</p>
-        </Link>
+        {producerId ? (
+          <Link
+            to="/producatori/$id"
+            params={{ id: producerId }}
+            className="rounded-2xl bg-panel px-4 py-4 text-panel-fg"
+          >
+            <Warehouse className="size-5 text-primary" />
+            <p className="mt-3 font-semibold">Pagina fermei</p>
+            <p className="mt-0.5 text-xs text-muted">Copertă, avatar, marfa de azi</p>
+          </Link>
+        ) : (
+          <Link to="/admin/producatori" className="rounded-2xl bg-panel px-4 py-4 text-panel-fg">
+            <Warehouse className="size-5 text-primary" />
+            <p className="mt-3 font-semibold">Profilul fermei</p>
+            <p className="mt-0.5 text-xs text-muted">Poze, locație, contact</p>
+          </Link>
+        )}
       </div>
 
       <section className="mt-8">

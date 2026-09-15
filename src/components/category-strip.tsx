@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DEFAULT_CATEGORIES } from "@/lib/categories";
 import { deleteCategory, saveCategory } from "@/lib/platform-fns";
 import { useShop } from "@/lib/store";
@@ -28,6 +28,8 @@ export function CategoryStrip({
   const qc = useQueryClient();
   const shop = mode === "shop";
   const [open, setOpen] = useState(false);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const drag = useRef({ on: false, x: 0, sl: 0, moved: false });
   const [tool, setTool] = useState<Tool>(null);
   const [label, setLabel] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -211,7 +213,33 @@ export function CategoryStrip({
   }
 
   return (
-    <div className="hide-scrollbar mt-1.5 -mx-4 overflow-x-auto overscroll-x-contain">
+    <div
+      ref={stripRef}
+      className="hide-scrollbar mt-1.5 -mx-4 cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing"
+      onPointerDown={(e) => {
+        const el = stripRef.current;
+        if (!el) return;
+        drag.current = { on: true, x: e.clientX, sl: el.scrollLeft, moved: false };
+        el.setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        if (!drag.current.on || !stripRef.current) return;
+        const dx = e.clientX - drag.current.x;
+        if (Math.abs(dx) > 4) drag.current.moved = true;
+        stripRef.current.scrollLeft = drag.current.sl - dx;
+      }}
+      onPointerUp={(e) => {
+        drag.current.on = false;
+        stripRef.current?.releasePointerCapture(e.pointerId);
+      }}
+      onClickCapture={(e) => {
+        if (drag.current.moved) {
+          e.preventDefault();
+          e.stopPropagation();
+          drag.current.moved = false;
+        }
+      }}
+    >
       <div className="flex w-max items-center gap-1.5 px-4 pe-8 pb-0.5">{chips}</div>
     </div>
   );

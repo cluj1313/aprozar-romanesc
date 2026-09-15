@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppCover } from "@/components/app-cover";
+import { AppsEditor } from "@/components/apps-editor";
 import { ImageField } from "@/components/image-field";
 import { MsgActions } from "@/components/msg-actions";
 import { SocialEditor } from "@/components/social-row";
@@ -8,14 +9,12 @@ import { adminArea, adminField } from "@/components/admin/pills";
 import { Button } from "@/components/ui/button";
 import {
   deleteAppBlock,
-  deleteAppLink,
   saveAppBlock,
-  saveAppLink,
   saveAppProfile,
 } from "@/lib/platform-fns";
 import { DEFAULT_APP_SOCIAL_INTRO, pickSocial, withSocial } from "@/lib/social";
 import { useShop } from "@/lib/store";
-import type { AppBlock, AppLink, Platform } from "@/lib/types";
+import type { AppBlock, Platform } from "@/lib/types";
 import { appPageQueryKey } from "@/lib/use-app-page";
 import { catalogQueryKey } from "@/lib/use-catalog";
 import { platformQueryKey } from "@/lib/use-platform";
@@ -51,8 +50,8 @@ export function TabAplicatia({ platform }: { platform: Platform }) {
     <div>
       <p className="text-sm text-muted">
         Pagina de prezentare a aplicației — nu a produselor. Copertă, avatar, WhatsApp, telefon,
-        textul tău și celelalte aplicații, cu poză și link. Numerele din dreapta jos se actualizează
-        la fiecare reîncărcare.
+        textul tău și celelalte aplicații, fiecare cu banner și link. Numerele din dreapta jos se
+        actualizează la fiecare reîncărcare.
       </p>
 
       <div className="-mx-4 mt-4 overflow-hidden border-y border-border">
@@ -190,112 +189,6 @@ function BlocksEditor({
                   setBody(b.body);
                 }}
                 onDelete={() => del.mutate(b.id)}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function AppsEditor({
-  apps,
-  onDone,
-}: {
-  apps: AppLink[];
-  onDone: () => void;
-}) {
-  const setFlash = useShop((s) => s.setFlash);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [image, setImage] = useState("");
-  const [url, setUrl] = useState("");
-
-  const reset = () => {
-    setEditId(null);
-    setTitle("");
-    setBody("");
-    setImage("");
-    setUrl("");
-  };
-
-  const save = useMutation({
-    mutationFn: () =>
-      saveAppLink({
-        data: { id: editId ?? undefined, title, body, image, url },
-      }),
-    onSuccess: () => {
-      reset();
-      setFlash("Aplicația e pe listă");
-      onDone();
-    },
-  });
-  const del = useMutation({
-    mutationFn: (id: string) => deleteAppLink({ data: { id } }),
-    onSuccess: onDone,
-  });
-
-  return (
-    <section className="mt-8">
-      <h2 className="font-semibold">Alte aplicații de-ale mele</h2>
-      <p className="mt-1 text-sm text-muted">Poză și link. Apar pe pagina aplicației și jos, în Cont.</p>
-      <input
-        className={`${adminField} mt-3`}
-        placeholder="Numele aplicației"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <textarea
-        className={`${adminArea} mt-2 min-h-20`}
-        placeholder="O vorbă scurtă"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-      />
-      <div className="mt-2">
-        <ImageField label="Poză" value={image} onChange={setImage} />
-      </div>
-      <input
-        className={`${adminField} mt-2`}
-        placeholder="Linkul — https://…"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-      />
-      <Button
-        type="button"
-        className="mt-3 w-full rounded-xl"
-        disabled={save.isPending || title.trim().length < 2}
-        onClick={() => save.mutate()}
-      >
-        {editId ? "Salvează aplicația" : "Adaugă aplicația"}
-      </Button>
-      {editId ? (
-        <button type="button" className="mt-2 w-full text-sm font-semibold text-muted" onClick={reset}>
-          Renunță
-        </button>
-      ) : null}
-      <ul className="mt-4 space-y-2">
-        {apps.map((a) => (
-          <li key={a.id} className="rounded-2xl border border-border bg-elevated p-3">
-            <div className="flex items-start gap-3">
-              {a.image ? (
-                <img src={a.image} alt="" className="size-14 rounded-lg object-cover" />
-              ) : null}
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">{a.title}</p>
-                <p className="text-sm text-muted">{a.body}</p>
-                {a.url ? <p className="mt-0.5 truncate text-xs text-primary">{a.url}</p> : null}
-              </div>
-              <MsgActions
-                onEdit={() => {
-                  setEditId(a.id);
-                  setTitle(a.title);
-                  setBody(a.body);
-                  setImage(a.image);
-                  setUrl(a.url);
-                }}
-                onDelete={() => del.mutate(a.id)}
               />
             </div>
           </li>

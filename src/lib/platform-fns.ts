@@ -468,22 +468,25 @@ async function seedAppPage(sql: Awaited<ReturnType<typeof getSql>>) {
       `;
     }
   }
-  const serviciiApp = SEED_APP_APPS.find((a) => a.id === "app-servicii");
-  if (serviciiApp) {
+  for (const a of SEED_APP_APPS) {
     await sql`
       insert into app_apps (id, title, body, image, url, sort_order)
-      values (
-        ${serviciiApp.id}, ${serviciiApp.title}, ${serviciiApp.body}, ${serviciiApp.image},
-        ${serviciiApp.url}, ${serviciiApp.sortOrder}
-      )
-      on conflict (id) do update set
-        title = excluded.title,
-        body = excluded.body,
-        image = excluded.image,
-        url = excluded.url,
-        sort_order = excluded.sort_order
+      values (${a.id}, ${a.title}, ${a.body}, ${a.image}, ${a.url}, ${a.sortOrder})
+      on conflict (id) do nothing
+    `;
+    await sql`
+      update app_apps
+      set
+        title = ${a.title},
+        body = ${a.body},
+        image = ${a.image},
+        url = ${a.url},
+        sort_order = ${a.sortOrder}
+      where id = ${a.id}
+        and image not like ${"data:%"}
     `;
   }
+  await sql`delete from app_apps where id = ${"app-livada"}`;
   const p = SEED_APP_PROFILE;
   if (p.socialIntro || p.facebook || p.instagram || p.youtube || p.tiktok || p.website) {
     await sql`
@@ -606,6 +609,18 @@ async function ensurePlatformSeed() {
   await sql.query(
     "update ads set duration_hours = 8760, status = 'live', active = true where id in ('ad-ferma','ad-rosii') and status <> 'rejected'",
   );
+  await sql`
+    update ads
+    set title = ${"Roșii Țărănești astăzi 20% reducere !!!"},
+        body = ${""},
+        image = ${"/images/rosii.jpg"}
+    where id = ${"ad-rosii"}
+  `;
+  await sql`
+    update ads
+    set body = ${"Toți meșterii din jurul tău"}
+    where id = ${"ad-servicii"}
+  `;
   const sponsors = await sql<{ c: number }>`select count(*)::int as c from sponsors`;
   if ((sponsors[0]?.c ?? 0) === 0) {
     for (const s of SEED_SPONSORS) {

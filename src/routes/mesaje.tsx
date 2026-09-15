@@ -23,7 +23,7 @@ function MesajePage() {
       <div className="mx-auto max-w-xl px-4 pb-10">
         <h1 className="pt-3 font-display text-2xl font-semibold">Mesaje</h1>
         <p className="mt-2 text-sm text-muted">
-          Tot ce ține de vorbit: ajutorul aplicației, sponsorii, producătorii și clienții.
+          Ajutor, client, producător — sponsorii sunt la urmă.
         </p>
         <div className="mt-4">
           <MyNotices />

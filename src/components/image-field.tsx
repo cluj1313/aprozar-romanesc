@@ -1,41 +1,77 @@
+import { Camera, Images } from "lucide-react";
 import { adminField } from "@/components/admin/pills";
+import { cn } from "@/lib/utils";
 
 export function ImageField({
   value,
   onChange,
   label,
+  wide,
 }: {
   value: string;
   onChange: (v: string) => void;
   label?: string;
+  wide?: boolean;
 }) {
   return (
     <div>
       {label ? <p className="text-sm font-semibold">{label}</p> : null}
       {value ? (
-        <img src={value} alt="" className="mt-1 h-28 w-full rounded-xl object-cover" />
+        <img
+          src={value}
+          alt=""
+          className={cn(
+            "mt-1 w-full rounded-xl object-cover object-center",
+            wide ? "aspect-video" : "h-28",
+          )}
+        />
       ) : null}
       <input
         className={`${adminField} mt-1`}
-        placeholder="Linkul pozei"
+        placeholder={wide ? "Linkul bannerului (opțional)" : "Linkul pozei (opțional)"}
         value={value.startsWith("data:") ? "" : value}
         onChange={(e) => onChange(e.target.value)}
       />
-      <label className="mt-2 inline-flex h-10 cursor-pointer items-center rounded-full border border-border bg-elevated px-3 text-sm font-semibold">
-        Alege poza de pe telefon
-        <input
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (!file) return;
-            void fileToDataUrl(file).then(onChange);
-          }}
-        />
-      </label>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <PickButton label="Din galerie" onFile={onChange}>
+          <Images className="size-4" />
+        </PickButton>
+        <PickButton label="Fă o poză" capture onFile={onChange}>
+          <Camera className="size-4" />
+        </PickButton>
+      </div>
     </div>
+  );
+}
+
+function PickButton({
+  label,
+  capture,
+  onFile,
+  children,
+}: {
+  label: string;
+  capture?: boolean;
+  onFile: (v: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-elevated px-3 text-sm font-semibold">
+      {children}
+      {label}
+      <input
+        type="file"
+        accept="image/*"
+        capture={capture ? "environment" : undefined}
+        className="sr-only"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          void fileToDataUrl(file).then(onFile);
+        }}
+      />
+    </label>
   );
 }
 

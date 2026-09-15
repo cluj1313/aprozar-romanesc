@@ -161,10 +161,19 @@ html[data-font="rotund"] {
   contain-intrinsic-size: auto 20rem;
 }
 
+.product-grid-dense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 0.5rem;
+  row-gap: 0.75rem;
+}
+.product-grid-dense > * {
+  contain-intrinsic-size: auto 12rem;
+}
+
 .tile-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
   align-items: start;
 }
 .tile-grid > * {

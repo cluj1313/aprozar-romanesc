@@ -30,9 +30,9 @@ import { cn, formatWhen } from "@/lib/utils";
 
 export const INBOX_KINDS = [
   { id: "ajutor", label: "Ajutor" },
+  { id: "clienti", label: "Client" },
+  { id: "producatori", label: "Producător" },
   { id: "sponsori", label: "Sponsori" },
-  { id: "producatori", label: "Producători" },
-  { id: "clienti", label: "Clienți" },
 ] as const;
 
 export type InboxKind = (typeof INBOX_KINDS)[number]["id"];
@@ -124,7 +124,7 @@ export function Inbox({
         {INBOX_KINDS.map((k) => (
           <Pill key={k.id} active={kind === k.id} onClick={() => onKind(k.id)}>
             {k.label}
-            {counts[k.id] ? (
+            {k.id !== "sponsori" && counts[k.id] ? (
               <span className="ml-1.5 tabular-nums text-xs opacity-80">{counts[k.id]}</span>
             ) : null}
           </Pill>

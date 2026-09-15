@@ -95,7 +95,6 @@ export function buildProducerPackets(opts: {
   deliveryBani: number;
   phones?: Record<string, string>;
 }): ProducerPacket[] {
-  const body = orderBody(opts);
   const seen = new Map<string, PacketItem[]>();
   for (const item of opts.items) {
     const list = seen.get(item.producerId) ?? [];
@@ -107,12 +106,24 @@ export function buildProducerPackets(opts: {
     const producerName = items[0]?.producerName ?? "Fermă";
     const producerPhone =
       items.find((i) => i.producerPhone)?.producerPhone || opts.phones?.[producerId] || "";
+    const productsBani = items.reduce((s, i) => s + i.lineBani, 0);
+    const wantsDelivery = items.some((i) => i.fulfillment === "livrare");
+    const deliveryBani = wantsDelivery ? opts.deliveryBani : 0;
+    const totalBani = productsBani + deliveryBani;
     packets.push({
       producerId,
       producerName,
       producerPhone,
-      totalBani: opts.totalBani,
-      text: `Bună, ${producerName}!\n\n${body}`,
+      totalBani,
+      text: `Bună, ${producerName}!\n\n${orderBody({
+        customerName: opts.customerName,
+        customerPhone: opts.customerPhone,
+        address: opts.address,
+        slot: opts.slot,
+        items,
+        totalBani,
+        deliveryBani,
+      })}`,
     });
   }
   return packets;

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import {
   BookOpen,
+  ChevronLeft,
   Home,
   Menu,
   Settings,
@@ -47,19 +48,39 @@ const GROUPS = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const count = useShop((s) => s.items.length);
   const session = useShop((s) => s.session);
   const adminLabel = session.role === "producer" ? "Taraba mea" : "Admin";
+  const atHome = pathname === "/";
+
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.history.back();
+      return;
+    }
+    void router.navigate({ to: "/" });
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-bg/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-xl items-center gap-2 px-4 py-1">
+      <div className="mx-auto flex max-w-xl items-center gap-1 px-3 py-1">
+        {atHome ? null : (
+          <button
+            type="button"
+            aria-label="Înapoi"
+            onClick={goBack}
+            className="flex size-10 shrink-0 items-center justify-center rounded-md text-primary"
+          >
+            <ChevronLeft className="size-6" />
+          </button>
+        )}
         <Link to="/" aria-label="Aprozar Românesc" className="relative shrink-0">
           <img src="/images/logo-badge.png" alt="" className="size-10 object-contain" />
         </Link>
         <Link to="/" className="min-w-0 flex-1">
-          <span className="block truncate text-lg leading-none font-extrabold tracking-tight text-primary uppercase whitespace-nowrap">
+          <span className="font-display block truncate text-lg leading-none font-bold tracking-wide text-primary uppercase whitespace-nowrap">
             Aprozar Românesc
           </span>
         </Link>
