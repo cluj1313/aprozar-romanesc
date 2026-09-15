@@ -230,6 +230,7 @@ export type AppLink = {
   image: string;
   url: string;
   sortOrder: number;
+  hidden: boolean;
 };
 
 export type AppLiveStats = {
