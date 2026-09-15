@@ -79,7 +79,7 @@ export const SEED_APP_APPS = [
     sortOrder: 0,
     title: "Servicii Locale",
     body: "Meșteri de încredere în orașul tău.",
-    image: "/images/servicii-locale.svg",
+    image: "/images/banner-servicii.jpg",
     url: "https://cluj1313.github.io/",
   },
   {
@@ -330,7 +330,7 @@ export const SEED_ADS = [
     displaySeconds: 10,
     mode: "static" as const,
     active: true,
-    image: "/images/servicii-locale.svg",
+    image: "/images/banner-servicii.jpg",
     status: "live" as const,
     linkUrl: "https://cluj1313.github.io/",
   },

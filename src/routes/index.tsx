@@ -63,9 +63,9 @@ function Home() {
               Vezi toți
             </Link>
           </div>
-          <div className="hide-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pe-10">
+          <div className="tile-grid mt-3">
             {producers.map((p) => (
-              <ProducerCard key={p.id} producer={p} layout="scroll" />
+              <ProducerCard key={p.id} producer={p} />
             ))}
           </div>
         </section>

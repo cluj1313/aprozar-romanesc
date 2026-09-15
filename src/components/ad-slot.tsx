@@ -25,31 +25,31 @@ export function AdBanner({
   const external = /^https?:\/\//i.test(ad.linkUrl ?? "");
 
   if (compact) {
+    if (hasImg) {
+      return (
+        <div className={cn("relative h-full w-full overflow-hidden bg-primary", className)}>
+          <img src={ad.image} alt="" className="absolute inset-0 size-full object-cover object-center" />
+        </div>
+      );
+    }
     return (
       <div
         className={cn(
-          "flex h-full w-full items-center gap-3 bg-primary px-3 py-2 text-primary-fg",
+          "flex h-full w-full items-center gap-2 bg-primary px-3 text-primary-fg",
           className,
         )}
       >
-        {hasImg ? (
-          <img
-            src={ad.image}
-            alt=""
-            className="size-16 shrink-0 rounded-lg bg-primary-fg/15 object-cover"
-          />
-        ) : (
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary-fg/15 font-display text-2xl font-semibold">
-            {ad.title.slice(0, 1)}
-          </span>
-        )}
         <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-semibold leading-tight">{ad.title}</p>
-          {ad.body ? <p className="mt-0.5 line-clamp-1 text-xs leading-snug text-primary-fg/90">{ad.body}</p> : null}
-          {external ? (
-            <p className="mt-0.5 text-[11px] font-semibold tracking-wide uppercase">Deschide →</p>
+          <p className="font-display text-base font-semibold leading-tight">{ad.title}</p>
+          {ad.body ? (
+            <p className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-primary-fg/90">{ad.body}</p>
           ) : null}
         </div>
+        {external ? (
+          <span className="shrink-0 rounded-full bg-[#f5c518] px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#163e18] uppercase">
+            Vezi aici
+          </span>
+        ) : null}
       </div>
     );
   }
@@ -180,7 +180,7 @@ export function AdSlot({ position, className }: { position: AdPosition; classNam
       <div
         className={cn(
           "relative overflow-hidden rounded-xl bg-primary text-primary-fg shadow-soft",
-          compact ? "h-24" : vertical ? "aspect-[3/1]" : "aspect-[5/2]",
+          compact ? "h-[4.5rem] rounded-lg" : vertical ? "aspect-[3/1]" : "aspect-[5/2]",
         )}
       >
         {slides.map((slide, n) => {
