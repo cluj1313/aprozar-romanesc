@@ -15,10 +15,39 @@ function pillIndex(status: OrderStatus) {
   return 0;
 }
 
-export function OrderTrack({ order }: { order: SavedOrder }) {
+export function OrderTrack({ order, pillsOnly }: { order: SavedOrder; pillsOnly?: boolean }) {
   const status = orderStatusOf(order);
   const pills = ["Așteaptă confirmarea", "Pregătită", readyLabel(order)];
   const active = pillIndex(status);
+
+  const bars =
+    status === "anulata" ? (
+      <p className="rounded-full bg-warn/15 px-3 py-1.5 text-center text-xs font-semibold text-warn">
+        Comandă anulată
+      </p>
+    ) : (
+      <div className="flex gap-1">
+        {pills.map((label, i) => {
+          const on = i === active;
+          const done = i < active;
+          return (
+            <span
+              key={label}
+              className={cn(
+                "flex min-w-0 flex-1 items-center justify-center rounded-full px-1.5 py-1.5 text-center text-[10px] leading-tight font-semibold",
+                on && "bg-primary text-primary-fg",
+                done && "bg-primary/15 text-primary",
+                !on && !done && "bg-sunken text-muted",
+              )}
+            >
+              {label}
+            </span>
+          );
+        })}
+      </div>
+    );
+
+  if (pillsOnly) return bars;
 
   return (
     <section className="rounded-2xl border border-border bg-elevated px-3 py-3">
@@ -26,31 +55,7 @@ export function OrderTrack({ order }: { order: SavedOrder }) {
         <p className="min-w-0 truncate text-sm font-semibold">{farmLabel(order)}</p>
         <p className="shrink-0 font-price font-semibold text-primary">{formatLei(order.totalBani)}</p>
       </div>
-      {status === "anulata" ? (
-        <p className="mt-2 rounded-full bg-warn/15 px-3 py-1.5 text-center text-xs font-semibold text-warn">
-          Comandă anulată
-        </p>
-      ) : (
-        <div className="mt-2 flex gap-1">
-          {pills.map((label, i) => {
-            const on = i === active;
-            const done = i < active;
-            return (
-              <span
-                key={label}
-                className={cn(
-                  "flex min-w-0 flex-1 items-center justify-center rounded-full px-1.5 py-1.5 text-center text-[10px] leading-tight font-semibold",
-                  on && "bg-primary text-primary-fg",
-                  done && "bg-primary/15 text-primary",
-                  !on && !done && "bg-sunken text-muted",
-                )}
-              >
-                {label}
-              </span>
-            );
-          })}
-        </div>
-      )}
+      <div className="mt-2">{bars}</div>
     </section>
   );
 }
@@ -74,4 +79,3 @@ export function WaitingOrders({
     </section>
   );
 }
-
