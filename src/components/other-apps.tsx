@@ -9,9 +9,11 @@ export function OtherApps({
   empty?: React.ReactNode;
 }) {
   if (!apps.length) return empty ? <>{empty}</> : null;
+  const visible = apps.filter((a) => !a.hidden);
+  if (!visible.length) return empty ? <>{empty}</> : null;
   return (
     <ul className="space-y-4">
-      {apps.map((a) => (
+      {visible.map((a) => (
         <li key={a.id}>
           <AppCard app={a} />
         </li>
